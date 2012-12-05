@@ -7,10 +7,11 @@ import java.util.TreeMap;
 import java.util.SortedMap;
 import java.util.TreeSet;
 import java.util.SortedSet;
-import java.util.Set;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 
 public class VQueryBrowser {
@@ -78,24 +79,30 @@ public class VQueryBrowser {
 
 
 class MaFenetre extends Frame implements KeyListener {
-    TextField tf;
+    TextArea ta;
     TreeMap<String, TreeMap> completor;
     MaFenetre(TreeMap comp){
 	super("Essai");
-	tf = new TextField();
-	tf.addKeyListener(this);
-	tf.setFocusTraversalKeysEnabled(false);
-	add(tf);
-	setSize(250, 100);
+	ta = new TextArea();
+	ta.addKeyListener(this);
+	ta.setFocusTraversalKeysEnabled(false);
+	add(ta);
+	setSize(400, 300);
 	setVisible(true);
-	completor = comp;
+	completor = comp;    
+	addWindowListener(
+			  new WindowAdapter() {
+			      public void windowClosing(WindowEvent e) {
+				  System.exit(0);
+			      }
+			  });
     }
-
+			  
 
     public void keyTyped(KeyEvent evt){}
     public void keyPressed(KeyEvent evt){	if (evt.getKeyCode() == KeyEvent.VK_TAB){
 	    evt.consume();
-	    String s_tf = tf.getText();
+	    String s_ta = ta.getText();
 	    
 
 	    /* Récupère le mot entre l'espace précédant le curseur et le curseur. S'il n'y a pas d'espace, ça prend toute la sous-chaîne gauche jusqu'au curseur. */
@@ -104,9 +111,9 @@ class MaFenetre extends Frame implements KeyListener {
 	                  curseur
 			  = i_caret 
 	    */
-	    int i_caret = tf.getCaretPosition(); // Enregistre la position du curseur
-	    String s_pref = s_tf.substring(0, i_caret); // Chaîne a
-	    String s_suff = s_tf.substring(i_caret, s_tf.length()); // Chaîne b 
+	    int i_caret = ta.getCaretPosition(); // Enregistre la position du curseur
+	    String s_pref = s_ta.substring(0, i_caret); // Chaîne a
+	    String s_suff = s_ta.substring(i_caret, s_ta.length()); // Chaîne b 
 	    int i_debut = Math.max(s_pref.lastIndexOf(" ")+1, 0);
 	    String s_extract = s_pref.substring(i_debut, i_caret);
 	    System.out.println("Tentative de complétion à partir de '" + s_extract + "'.");
@@ -145,8 +152,8 @@ class MaFenetre extends Frame implements KeyListener {
 	    }
 
 	    if (s_insert != null){
-		tf.setText(s_pref + s_insert.substring(s_to_complete.length()) + s_suff); // Insère la complétion
-		tf.setCaretPosition( tf.getText().length() - (s_tf.length() - i_caret)); // Remet le curseur où il était avant la complétion
+		ta.setText(s_pref + s_insert.substring(s_to_complete.length()) + s_suff); // Insère la complétion
+		ta.setCaretPosition( ta.getText().length() - (s_ta.length() - i_caret)); // Remet le curseur où il était avant la complétion
 	    }	    
 	    System.out.println("TAB appuyé");
 	}
@@ -168,15 +175,12 @@ class MaFenetre extends Frame implements KeyListener {
 	    char nextLetter = (char) (prefix.charAt(prefix.length()-1)+1);
 	    String end = prefix.substring(0, prefix.length()-1) + nextLetter;
 	    System.out.println("Éléments entre " + prefix + " et " + end);
-	    //SortedSet<String> ret = baseSet.subSet(prefix, end);
-	    //System.out.println("Taille du sous-ensemble renvoyé : " + ret.size());
-	    
 	    return baseSet.subSet(prefix, end);
 	}
 	return baseSet;
     }
 
-
+    
     String extract(String s, int i){
 	return(s.split("\\.")[i-1]);
     }
@@ -193,7 +197,10 @@ class MaFenetre extends Frame implements KeyListener {
 	Object[] sa_suff = filterPrefix(ss, s_pref).toArray();	
 	if (sa_suff.length == 1){
 	    return ((String) sa_suff[0]);
-	}
+	} 
 	return null;
     }
+
+
+    
 }
