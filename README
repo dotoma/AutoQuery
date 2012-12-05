@@ -1,0 +1,1 @@
+Pour ajouter au CLASSPATH le connecteur JDBC : export CLASSPATH=/usr/share/java/mysql-connector-java-5.1.10.jar:$CLASSPATH
