@@ -12,6 +12,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 
 public class VQueryBrowser {
@@ -83,10 +85,17 @@ class MaFenetre extends Frame implements KeyListener {
     TreeMap<String, TreeMap> completor;
     TreeMap<String, TreeSet> tm_alias;
     MaFenetre(TreeMap comp){
-	super("Essai");
+	super("VQueryBrowser");
 	completor = comp;    
 	tm_alias = new TreeMap();
-	addAlias("dmos", "VOLT_INDICATOR.DATA_MODULATOR_OPERATING_STATUS");
+
+	/* Les ALIAS vont ici pour le moment */
+	/*	addAlias("dmos", "VOLT_INDICATOR.DATA_MODULATOR_OPERATING_STATUS");
+	addAlias("im", "MOMACQ_V2.INS_MODULATOR");
+	addAlias("imcs", "MOMACQ_V2.INS_MOMBOX_CONF_SITE");
+	addAlias("iml", "MOMACQ_V2.INS_MOMBOX_LINK"); */
+
+	
 	ta = new TextArea();
 	ta.addKeyListener(this);
 	ta.setFocusTraversalKeysEnabled(false);
@@ -102,8 +111,51 @@ class MaFenetre extends Frame implements KeyListener {
     }
 			  
 
+    
     public void keyTyped(KeyEvent evt){}
-    public void keyPressed(KeyEvent evt){	if (evt.getKeyCode() == KeyEvent.VK_TAB){
+    public void keyPressed(KeyEvent evt){
+	/* Essaie de lire l'alias si combinaison CTRL + R */
+	if (evt.getKeyCode() == KeyEvent.VK_R && evt.getKeyModifiersText(evt.getModifiers()).equals("Ctrl") ) {
+	    int i_caret = ta.getCaretPosition();
+	    String s_ta = ta.getText();
+	    String[] sa_words = s_ta.substring(0, i_caret).split(" ");
+	    System.out.println("Il y a " + sa_words.length + " mots.");
+	    /* Trouve les deux (trois s'il y a un alias) derniers mots */ 
+	    boolean b_alias_trouve = false;
+	    boolean b_chemin_trouve = false;
+	    int i_alias = -1;
+	    int i_chemin = -1;
+	    int i = sa_words.length - 1;
+	    while (i >= 0 && (!b_alias_trouve || !b_chemin_trouve)){
+		if (sa_words[i].equals("") || sa_words[i].equalsIgnoreCase("as")){
+		    i--;
+		    continue;
+		}
+
+		if (!b_alias_trouve){
+		    b_alias_trouve = true;
+		    i_alias = i;
+		    i--;
+		} else {
+		    b_chemin_trouve = true;
+		    i_chemin = i;
+		    i--;
+		}
+	    }
+
+	    if (b_alias_trouve && b_chemin_trouve){
+		new ConfirmAlias(this, sa_words[i_alias], sa_words[i_chemin]);
+	    }
+
+	    
+
+	    System.out.println("Alias : " + sa_words[i_alias] + ", chemin : " + sa_words[i_chemin]);
+	    
+
+	}
+
+	/* Lance la complétion */
+	if (evt.getKeyCode() == KeyEvent.VK_TAB){
 	    evt.consume();
 	    String s_ta = ta.getText();
 	    
@@ -217,7 +269,7 @@ class MaFenetre extends Frame implements KeyListener {
     }
 
 
-    void addAlias(String alias, String path){
+    public void addAlias(String alias, String path){
 	System.out.println("Ajout de l'alias " + alias + " pour " + path + ".");
 	
 	String[] sa_path = path.split("\\.");
@@ -228,6 +280,38 @@ class MaFenetre extends Frame implements KeyListener {
 	    if (completor.containsKey(sa_path[0]) && completor.get(sa_path[0]).containsKey(sa_path[1])){
 		tm_alias.put(alias, (TreeSet) completor.get(sa_path[0]).get(sa_path[1])); // Ajoute un lien vers les champs
 	    }
+	}
+    }
+
+    
+}
+
+class ConfirmAlias extends Dialog implements ActionListener {
+    private Button yes, no;
+    private String alias, chemin;
+    
+    public ConfirmAlias(Frame parent, String alias, String chemin) {
+	super(parent, "Confirmation d'ajout d'alias", true);
+	this.alias = alias;
+	this.chemin = chemin;
+	setLayout(new FlowLayout());
+	add(new Label("Ajouter l'alias \n" + alias + " pour \n" + chemin + " ?"));
+	yes = new Button("Oui");
+	yes.addActionListener(this);
+	no = new Button("Non");
+	no.addActionListener(this);
+	add(yes);
+	add(no);
+	pack();
+	setVisible(true);
+    }
+
+    public void actionPerformed(ActionEvent event) {
+	if (event.getSource() == yes) {
+	    ((MaFenetre) this.getParent()).addAlias(alias, chemin);
+	    dispose();
+	} else {
+	    dispose();
 	}
     }
 }
