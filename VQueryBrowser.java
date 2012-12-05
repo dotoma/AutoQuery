@@ -81,15 +81,18 @@ public class VQueryBrowser {
 class MaFenetre extends Frame implements KeyListener {
     TextArea ta;
     TreeMap<String, TreeMap> completor;
+    TreeMap<String, TreeSet> tm_alias;
     MaFenetre(TreeMap comp){
 	super("Essai");
+	completor = comp;    
+	tm_alias = new TreeMap();
+	addAlias("dmos", "VOLT_INDICATOR.DATA_MODULATOR_OPERATING_STATUS");
 	ta = new TextArea();
 	ta.addKeyListener(this);
 	ta.setFocusTraversalKeysEnabled(false);
 	add(ta);
 	setSize(400, 300);
 	setVisible(true);
-	completor = comp;    
 	addWindowListener(
 			  new WindowAdapter() {
 			      public void windowClosing(WindowEvent e) {
@@ -132,13 +135,23 @@ class MaFenetre extends Frame implements KeyListener {
 		System.out.println("Complétion de schéma");
 		s_to_complete = s_extract;
 		s_insert = complete(completor, s_to_complete);
+		if (s_insert == null){ // Si ce n'est pas un schéma qu'il faut chercher mais un alias
+		    s_insert = complete( (SortedMap) tm_alias, s_to_complete);
+		}
+
 		System.out.println("Cherche à insérer : " + s_insert);
 		break;
 	    case 1:
 		System.out.println("Complétion de table");
 		s_schema = extract(s_extract, 1);
 		s_to_complete = extract(s_extract, 2);
-		s_insert = complete(completor.get(s_schema), s_to_complete);
+		if (s_to_complete != null){
+		    s_insert = (completor.containsKey(s_schema)) ? complete(completor.get(s_schema), s_to_complete) : null;
+		    if (s_insert == null && tm_alias.containsKey(s_schema)){ // Si ce n'est pas une table qu'il faut chercher mais un champ
+			s_insert = complete( (SortedSet) tm_alias.get(s_schema), s_to_complete);
+		    }
+		    
+		}
 		System.out.println("Cherche à insérer : " + s_insert);
 		break;
 	    case 2:
@@ -185,6 +198,7 @@ class MaFenetre extends Frame implements KeyListener {
 	return(s.split("\\.")[i-1]);
     }
 
+    /* Si plus d'une solution ou pas de solution, renvoie NULL */
     String complete(SortedMap tm, String s_pref){
 	Object[] sa_suff = filterPrefix(tm, s_pref).keySet().toArray();	
 	if (sa_suff.length == 1){
@@ -193,6 +207,7 @@ class MaFenetre extends Frame implements KeyListener {
 	return null;
     }
 
+    /* Si plus d'une solution ou pas de solution, renvoie NULL */
     String complete(SortedSet ss, String s_pref){
 	Object[] sa_suff = filterPrefix(ss, s_pref).toArray();	
 	if (sa_suff.length == 1){
@@ -202,5 +217,17 @@ class MaFenetre extends Frame implements KeyListener {
     }
 
 
-    
+    void addAlias(String alias, String path){
+	System.out.println("Ajout de l'alias " + alias + " pour " + path + ".");
+	
+	String[] sa_path = path.split("\\.");
+	if (sa_path.length == 2){
+	    System.out.println("Entrés dans le test. sa_path[0] : " + sa_path[0] + ", sa_path[1] : " + sa_path[1]);
+		
+
+	    if (completor.containsKey(sa_path[0]) && completor.get(sa_path[0]).containsKey(sa_path[1])){
+		tm_alias.put(alias, (TreeSet) completor.get(sa_path[0]).get(sa_path[1])); // Ajoute un lien vers les champs
+	    }
+	}
+    }
 }
