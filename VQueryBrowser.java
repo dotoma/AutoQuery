@@ -7,8 +7,8 @@ public class VQueryBrowser{
     public static void main (String args[]){
 	Connection con = null;
 	try {
-	    Class.forName("com.mysql.jdbc.Driver");
-	    con = DriverManager.getConnection("jdbc:mysql://localhost:3312", "MAD_exp", "altUnsyint");
+	    loadDriver();
+	    con = newConnection();
 	    if ( ! con.isClosed()){
 		System.out.println("Connexion au serveur MySQL par TCP/IP...");
 	    }
@@ -21,5 +21,15 @@ public class VQueryBrowser{
 		}
 	    } catch (SQLException e) {}
 	}
+    }
+
+    static void loadDriver() throws ClassNotFoundException {
+	Class.forName("com.mysql.jdbc.Driver");
+    }
+
+    static Connection newConnection() throws SQLException {
+	final String url = "jdbc:mysql://localhost:3312";
+	Connection con = DriverManager.getConnection(url, "MAD_exp", "altUnsyint");
+	return con;
     }
 }
