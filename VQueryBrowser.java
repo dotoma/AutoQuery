@@ -1,7 +1,5 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
+import java.sql.*;
+import java.sql.ResultSet;
 
 public class VQueryBrowser{
     public static void main (String args[]){
@@ -9,9 +7,13 @@ public class VQueryBrowser{
 	try {
 	    loadDriver();
 	    con = newConnection();
-	    if ( ! con.isClosed()){
-		System.out.println("Connexion au serveur MySQL par TCP/IP...");
+	    Statement st = con.createStatement();
+	    String query = "SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS ORDER BY ORDINAL_POSITION";
+	    ResultSet rs = st.executeQuery(query);
+	    while (rs.next()) {
+		System.out.println(rs.getString("TABLE_SCHEMA") + " " + rs.getString("TABLE_NAME") + " " + rs.getString("COLUMN_NAME"));
 	    }
+
 	} catch (Exception e){
 	    System.err.println("Exception : " + e.getMessage());
 	} finally {
