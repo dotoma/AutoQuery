@@ -21,7 +21,11 @@ public class VQueryBrowser {
 	Connection con = null;
 	try {
 	    loadDriver();
-	    con = newConnection();
+	    if (args.length == 3){
+		con = newConnection(args[1], args[2]);
+	    } else {
+		con = newConnection("prod-bdd-mono-master-read", "3306");
+	    }
 	    Statement st = con.createStatement();
 	    String query = "SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION";
 	    ResultSet rs = st.executeQuery(query);
@@ -42,7 +46,8 @@ public class VQueryBrowser {
     static void makeWindow(TreeMap comp){
 	MaFenetre f = new MaFenetre(comp);
     }
-
+    
+    /* Crée l'arbre pour la complétion */
     static TreeMap makeTree(ResultSet rs) throws SQLException{
 	TreeMap <String, TreeMap<String, TreeSet<String>> > tm_schemas = new TreeMap();
 	while (rs.next()) {
@@ -56,24 +61,24 @@ public class VQueryBrowser {
 	    }
 	    
     	    if ( ! tm_schemas.get(s_schema).containsKey(s_table)){
-		/* table pas encore répertorié */
+		/* table pas encore répertoriée */
 		tm_schemas.get(s_schema).put(s_table, new TreeSet<String>());
 		System.out.println("\t Ajout de la table : " + s_table);
 	    }
-
 	    tm_schemas.get(s_schema).get(s_table).add(s_champ);
 	    System.out.println("\t\t Ajout du champ : " + s_champ);
       	}
-
 	return tm_schemas;
     }
 
-    static void loadDriver() throws ClassNotFoundException {
+
+    /* Charge le driver pour communiquer avec la base de données */
+    private static void loadDriver() throws ClassNotFoundException {
 	Class.forName("com.mysql.jdbc.Driver");
     }
 
-    static Connection newConnection() throws SQLException {
-	final String url = "jdbc:mysql://localhost:3312";
+    private static Connection newConnection(String host, String port) throws SQLException {
+	final String url = "jdbc:mysql://" + host + ":" + port;
 	Connection con = DriverManager.getConnection(url, "MAD_exp", "altUnsyint");
 	return con;
     }
@@ -88,14 +93,6 @@ class MaFenetre extends Frame implements KeyListener {
 	super("VQueryBrowser");
 	completor = comp;    
 	tm_alias = new TreeMap();
-
-	/* Les ALIAS vont ici pour le moment */
-	/*	addAlias("dmos", "VOLT_INDICATOR.DATA_MODULATOR_OPERATING_STATUS");
-	addAlias("im", "MOMACQ_V2.INS_MODULATOR");
-	addAlias("imcs", "MOMACQ_V2.INS_MOMBOX_CONF_SITE");
-	addAlias("iml", "MOMACQ_V2.INS_MOMBOX_LINK"); */
-
-	
 	ta = new TextArea();
 	ta.addKeyListener(this);
 	ta.setFocusTraversalKeysEnabled(false);
@@ -143,12 +140,12 @@ class MaFenetre extends Frame implements KeyListener {
 		}
 	    }
 
+	    /* Plutôt qu'une fenêtre de confirmation, ce serait mieux que juste la création de l'alias soit notée dans une sorte de status bar en bas de l'application */
 	    if (b_alias_trouve && b_chemin_trouve){
 		new ConfirmAlias(this, sa_words[i_alias], sa_words[i_chemin]);
 	    }
 
 	    
-
 	    System.out.println("Alias : " + sa_words[i_alias] + ", chemin : " + sa_words[i_chemin]);
 	    
 
@@ -226,6 +223,8 @@ class MaFenetre extends Frame implements KeyListener {
 
     public void keyReleased(KeyEvent evt){}
     
+
+    /* Renvoie le sous-arbre dont les clefs dont le préfixe est prefix */
     private <V> SortedMap<String, V> filterPrefix(SortedMap<String, V> baseMap, String prefix){
 	if(prefix.length() > 0){
 	    char nextLetter = (char) (prefix.charAt(prefix.length()-1)+1);
@@ -235,6 +234,8 @@ class MaFenetre extends Frame implements KeyListener {
 	return baseMap;
     }
 
+
+    /* Renvoie le sous-ensemble des éléments dont le préfixe est prefix */
     private SortedSet<String> filterPrefix(SortedSet<String> baseSet, String prefix){
 	if(prefix.length() > 0){
 	    char nextLetter = (char) (prefix.charAt(prefix.length()-1)+1);
@@ -246,6 +247,7 @@ class MaFenetre extends Frame implements KeyListener {
     }
 
     
+    /* Renvoie le i-ème élément dans une série d'éléments séparés par '.' */
     String extract(String s, int i){
 	return(s.split("\\.")[i-1]);
     }
@@ -253,6 +255,7 @@ class MaFenetre extends Frame implements KeyListener {
     /* Si plus d'une solution ou pas de solution, renvoie NULL */
     String complete(SortedMap tm, String s_pref){
 	Object[] sa_suff = filterPrefix(tm, s_pref).keySet().toArray();	
+	
 	if (sa_suff.length == 1){
 	    return ((String) sa_suff[0]);
 	}
@@ -282,8 +285,6 @@ class MaFenetre extends Frame implements KeyListener {
 	    }
 	}
     }
-
-    
 }
 
 class ConfirmAlias extends Dialog implements ActionListener {
