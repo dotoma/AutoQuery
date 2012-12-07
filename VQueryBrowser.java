@@ -255,10 +255,31 @@ class MaFenetre extends Frame implements KeyListener {
     /* Si plus d'une solution ou pas de solution, renvoie NULL */
     String complete(SortedMap tm, String s_pref){
 	Object[] sa_suff = filterPrefix(tm, s_pref).keySet().toArray();	
-	
-	if (sa_suff.length == 1){
+	int nb_comp = sa_suff.length; // nombre de complétions possibles
+	System.out.println(nb_comp + " complétions possibles.");
+	if (nb_comp == 1){
 	    return ((String) sa_suff[0]);
+	} else if (nb_comp > 1){
+	    String s_premier = (String)sa_suff[0];
+	    int i = s_pref.length();
+	    StringBuffer sb_plus_long_prefixe = new StringBuffer(s_pref);
+	    System.out.println("Préfixe le plus long à partir de " + sb_plus_long_prefixe.toString());
+	    
+	    while (i < s_premier.length()){
+		System.out.println(s_pref + s_premier.charAt(i) + " est un préfixe commun ?");
+		
+		Object[] sa_comp = filterPrefix(tm, sb_plus_long_prefixe.toString() + s_premier.charAt(i)).keySet().toArray();
+		if (sa_comp.length == sa_suff.length){
+		    sb_plus_long_prefixe.append(s_premier.charAt(i));
+		    i++;
+		} else {
+		    break;
+		}
+	    }
+	    return sb_plus_long_prefixe.toString();	    
 	}
+
+	/* Assert: le tableau est vide */
 	return null;
     }
 
