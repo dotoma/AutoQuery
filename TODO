@@ -1,0 +1,9 @@
+- double TAB : fenêtre contextuelle avec les différentes complétions possibles
+- status bar pour indiquer 
+  - combien de complétions possibles sur simple TAB
+  - qu'un alias a été détecté après CTRL + R
+- coloration syntaxique
+- liste des schémas, tables et colonnes dans la partie droite de l'application
+- possibilité d'exécuter les requêtes
+  - affichage dans l'application
+  - enregistrement en CSV
