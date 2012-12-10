@@ -21,8 +21,11 @@ public class VQueryBrowser {
 	Connection con = null;
 	try {
 	    loadDriver();
-	    if (args.length == 3){
-		con = newConnection(args[1], args[2]);
+	    if (args.length == 2){
+		System.out.println("Connexion lancée avec les paramètres suivants :");
+		System.out.println("Serveur : " + args[0]);
+		System.out.println("Port : " + args[1]);
+		con = newConnection(args[0], args[1]);
 	    } else {
 		con = newConnection("prod-bdd-mono-master-read", "3306");
 	    }
@@ -86,18 +89,37 @@ public class VQueryBrowser {
 
 
 class MaFenetre extends Frame implements KeyListener {
-    TextArea ta;
+    public static final int HEIGHT = 400;
+    public static final int WIDTH = 600;
+    public static final int HEIGHT_STATUS_BAR = 40;
+    private TextArea ta;
+    private StatusBar status_bar;
+    private ToolBar tool_bar;
     TreeMap<String, TreeMap> completor;
     TreeMap<String, TreeSet> tm_alias;
     MaFenetre(TreeMap comp){
 	super("VQueryBrowser");
+	setLayout(new BorderLayout());
+	setSize(WIDTH, HEIGHT);
 	completor = comp;    
+
+	/* Sauvegarde des alias */
 	tm_alias = new TreeMap();
+
+	/* TextArea dans laquelle on tape les requêtes */
 	ta = new TextArea();
 	ta.addKeyListener(this);
 	ta.setFocusTraversalKeysEnabled(false);
-	add(ta);
-	setSize(400, 300);
+	add("Center", ta);
+
+	/* Status bar */
+	status_bar = new StatusBar();
+	add("South", status_bar);
+	
+	/* ToolBar */
+	//tool_bar = new ToolBar();
+	//add("North", tool_bar);
+
 	setVisible(true);
 	addWindowListener(
 			  new WindowAdapter() {
@@ -142,7 +164,8 @@ class MaFenetre extends Frame implements KeyListener {
 
 	    /* Plutôt qu'une fenêtre de confirmation, ce serait mieux que juste la création de l'alias soit notée dans une sorte de status bar en bas de l'application */
 	    if (b_alias_trouve && b_chemin_trouve){
-		new ConfirmAlias(this, sa_words[i_alias], sa_words[i_chemin]);
+		status_bar.showStatus("Ajout alias : " + sa_words[i_alias] + " pour " + sa_words[i_chemin]);
+		addAlias(sa_words[i_alias], sa_words[i_chemin]);
 	    }
 
 	    
@@ -185,6 +208,8 @@ class MaFenetre extends Frame implements KeyListener {
 		s_to_complete = s_extract;
 		s_insert = complete(completor, s_to_complete);
 		if (s_insert == null){ // Si ce n'est pas un schéma qu'il faut chercher mais un alias
+		    System.out.println("Pas de schéma trouvé commençant par " + s_to_complete);
+		    System.out.println("Recherche d'un alias correspondant");
 		    s_insert = complete( (SortedMap) tm_alias, s_to_complete);
 		}
 
@@ -248,15 +273,15 @@ class MaFenetre extends Frame implements KeyListener {
 
     
     /* Renvoie le i-ème élément dans une série d'éléments séparés par '.' */
-    String extract(String s, int i){
+    private String extract(String s, int i){
 	return(s.split("\\.")[i-1]);
     }
 
     /* Si plus d'une solution ou pas de solution, renvoie NULL */
-    String complete(SortedMap tm, String s_pref){
+    private String complete(SortedMap tm, String s_pref){
 	Object[] sa_suff = filterPrefix(tm, s_pref).keySet().toArray();	
-	int nb_comp = sa_suff.length; // nombre de complétions possibles
-	System.out.println(nb_comp + " complétions possibles.");
+	int nb_comp = sa_suff.length; // nombre de complétion(s) possible(s)
+	status_bar.showStatus(nb_comp + " complétion(s) possible(s)");
 	if (nb_comp == 1){
 	    return ((String) sa_suff[0]);
 	} else if (nb_comp > 1){
@@ -266,7 +291,7 @@ class MaFenetre extends Frame implements KeyListener {
 	    System.out.println("Préfixe le plus long à partir de " + sb_plus_long_prefixe.toString());
 	    
 	    while (i < s_premier.length()){
-		System.out.println(s_pref + s_premier.charAt(i) + " est un préfixe commun ?");
+		System.out.println(sb_plus_long_prefixe.toString() + s_premier.charAt(i) + " est un préfixe commun ?");
 		
 		Object[] sa_comp = filterPrefix(tm, sb_plus_long_prefixe.toString() + s_premier.charAt(i)).keySet().toArray();
 		if (sa_comp.length == sa_suff.length){
@@ -284,12 +309,36 @@ class MaFenetre extends Frame implements KeyListener {
     }
 
     /* Si plus d'une solution ou pas de solution, renvoie NULL */
-    String complete(SortedSet ss, String s_pref){
+    /* Remarque : cette requête est en tout point identique à celle concernant les SortedMaps. 
+       Comment n'en faire qu'une pour les deux ? */
+    private String complete(SortedSet ss, String s_pref){
 	Object[] sa_suff = filterPrefix(ss, s_pref).toArray();	
-	if (sa_suff.length == 1){
+	int nb_comp = sa_suff.length; // nombre de complétion(s) possible(s)
+	status_bar.showStatus(nb_comp + " complétion(s) possible(s)");
+	if (nb_comp == 1){
 	    return ((String) sa_suff[0]);
-	} 
+	} else if (nb_comp > 1){
+	    String s_premier = (String)sa_suff[0];
+	    int i = s_pref.length();
+	    StringBuffer sb_plus_long_prefixe = new StringBuffer(s_pref);
+	    System.out.println("Préfixe le plus long à partir de " + sb_plus_long_prefixe.toString());
+	    while (i < s_premier.length()){
+		System.out.println(s_pref + s_premier.charAt(i) + " est un préfixe commun ?");
+		
+		Object[] sa_comp = filterPrefix(ss, sb_plus_long_prefixe.toString() + s_premier.charAt(i)).toArray();
+		if (sa_comp.length == sa_suff.length){
+		    sb_plus_long_prefixe.append(s_premier.charAt(i));
+		    i++;
+		} else {
+		    break;
+		}
+	    }
+	    return sb_plus_long_prefixe.toString();	    
+	}
+
+	/* Assert: le tableau est vide */
 	return null;
+
     }
 
 
@@ -298,42 +347,61 @@ class MaFenetre extends Frame implements KeyListener {
 	
 	String[] sa_path = path.split("\\.");
 	if (sa_path.length == 2){
-	    System.out.println("Entrés dans le test. sa_path[0] : " + sa_path[0] + ", sa_path[1] : " + sa_path[1]);
-		
-
 	    if (completor.containsKey(sa_path[0]) && completor.get(sa_path[0]).containsKey(sa_path[1])){
 		tm_alias.put(alias, (TreeSet) completor.get(sa_path[0]).get(sa_path[1])); // Ajoute un lien vers les champs
+		System.out.println("Alias ajouté");
 	    }
 	}
     }
 }
 
-class ConfirmAlias extends Dialog implements ActionListener {
-    private Button yes, no;
-    private String alias, chemin;
-    
-    public ConfirmAlias(Frame parent, String alias, String chemin) {
-	super(parent, "Confirmation d'ajout d'alias", true);
-	this.alias = alias;
-	this.chemin = chemin;
-	setLayout(new FlowLayout());
-	add(new Label("Ajouter l'alias \n" + alias + " pour \n" + chemin + " ?"));
-	yes = new Button("Oui");
-	yes.addActionListener(this);
-	no = new Button("Non");
-	no.addActionListener(this);
-	add(yes);
-	add(no);
-	pack();
-	setVisible(true);
-    }
+class StatusBar extends Panel
+{
+	private Label info;
 
-    public void actionPerformed(ActionEvent event) {
-	if (event.getSource() == yes) {
-	    ((MaFenetre) this.getParent()).addAlias(alias, chemin);
-	    dispose();
-	} else {
-	    dispose();
+	// The constructor 
+	public StatusBar()
+	{
+		setLayout(new BorderLayout());
+
+		// Je crée un Label bourré d'espaces parce que je ne sais pas
+		// pas faire en sorte que le Label puisse accueillir un grand
+		// texte sinon.
+		add("West", info = new Label("                                                                                                                       ", Label.LEFT));
+		info.setMinimumSize(this.getSize());
+		System.out.println("Size info : " + info.getSize().toString());
+		System.out.println("Panel info : " + this.getPreferredSize().toString());
+       	}
+
+	public void showStatus(String status)
+	{
+		info.setText(status);
 	}
-    }
+}
+
+class ToolBar extends Panel
+{
+	// The constructor - called first when object is created
+	public ToolBar()
+	{
+		setLayout(new FlowLayout());
+
+		// Adds three buttons to the panel, which are
+		// laid out according to FlowLayout
+		add(new Button("Open"));
+		add(new Button("Save"));
+		add(new Button("Close"));
+
+		// A Choice component which needs to be
+		// added to the panel after the choices have
+		// been included.
+		Choice c = new Choice();
+		c.addItem("Times Roman");
+		c.addItem("Helvetica");
+		c.addItem("System"); 
+		add(c);
+
+		// Add one last button
+		add(new Button("Help"));
+	}
 }
