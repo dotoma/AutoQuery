@@ -88,13 +88,15 @@ public class VQueryBrowser {
 }
 
 
-class MaFenetre extends Frame implements KeyListener {
+class MaFenetre extends Frame implements KeyListener, ActionListener {
     public static final int HEIGHT = 400;
     public static final int WIDTH = 600;
     public static final int HEIGHT_STATUS_BAR = 40;
     private TextArea ta;
     private StatusBar status_bar;
     private ToolBar tool_bar;
+    private PopupMenu  popup;
+    short i_TAB_press;
     TreeMap<String, TreeMap> completor;
     TreeMap<String, TreeSet> tm_alias;
     MaFenetre(TreeMap comp){
@@ -115,6 +117,8 @@ class MaFenetre extends Frame implements KeyListener {
 	/* Status bar */
 	status_bar = new StatusBar();
 	add("South", status_bar);
+
+	i_TAB_press = 0;
 	
 	/* ToolBar */
 	//tool_bar = new ToolBar();
@@ -129,12 +133,31 @@ class MaFenetre extends Frame implements KeyListener {
 			  });
     }
 			  
-
+    public final void actionPerformed(final ActionEvent e) {
+	// Dans le cas d'un clic ou ENTER dans le menu contextuel :
+	// Insérer la complétion choisie
+	System.out.println("String lié au clic : " + e.getActionCommand());
+	int i_LastDotPosition = ta.getText().substring(0, ta.getCaretPosition()).lastIndexOf(".");
+	String s_pref = ta.getText().substring(0, i_LastDotPosition+1);
+	String s_suff = ta.getText().substring(ta.getCaretPosition());
+	ta.setText(s_pref + e.getActionCommand() + s_suff);
+	ta.setCaretPosition( s_pref.length() + e.getActionCommand().length());
+	// Supprimer ce menu
+	remove(popup);
+	popup = null;
+    }
+       
+    
+    
     
     public void keyTyped(KeyEvent evt){}
     public void keyPressed(KeyEvent evt){
 	/* Essaie de lire l'alias si combinaison CTRL + R */
 	if (evt.getKeyCode() == KeyEvent.VK_R && evt.getKeyModifiersText(evt.getModifiers()).equals("Ctrl") ) {
+	    /* Remet à zéro le compteur de TAB */
+	    i_TAB_press = 0;
+
+
 	    int i_caret = ta.getCaretPosition();
 	    String s_ta = ta.getText();
 	    String[] sa_words = s_ta.substring(0, i_caret).split(" ");
@@ -175,78 +198,97 @@ class MaFenetre extends Frame implements KeyListener {
 	}
 
 	/* Lance la complétion */
-	if (evt.getKeyCode() == KeyEvent.VK_TAB){
+	else if (evt.getKeyCode() == KeyEvent.VK_TAB){
+	    /* Incrémente le compteur de TAB */
+	    i_TAB_press++;
 	    evt.consume();
-	    String s_ta = ta.getText();
+
+	    if (i_TAB_press <= 1){
+		String s_ta = ta.getText();
 	    
 
-	    /* Récupère le mot entre l'espace précédant le curseur et le curseur. S'il n'y a pas d'espace, ça prend toute la sous-chaîne gauche jusqu'au curseur. */
-	    /* <----a-------> <---b---->
-	       _ _ _ _ _ PREF| _ _ _ _ _ 
-	                  curseur
-			  = i_caret 
-	    */
-	    int i_caret = ta.getCaretPosition(); // Enregistre la position du curseur
-	    String s_pref = s_ta.substring(0, i_caret); // Chaîne a
-	    String s_suff = s_ta.substring(i_caret, s_ta.length()); // Chaîne b 
-	    int i_debut = Math.max(s_pref.lastIndexOf(" ")+1, 0);
-	    String s_extract = s_pref.substring(i_debut, i_caret);
-	    System.out.println("Tentative de complétion à partir de '" + s_extract + "'.");
+		/* Récupère le mot entre l'espace précédant le curseur et le curseur. S'il n'y a pas d'espace, ça prend toute la sous-chaîne gauche jusqu'au curseur. */
+		/* <----a-------> <---b---->
+		   _ _ _ _ _ PREF| _ _ _ _ _ 
+		   curseur
+		   = i_caret 
+		*/
+		int i_caret = ta.getCaretPosition(); // Enregistre la position du curseur
+		String s_pref = s_ta.substring(0, i_caret); // Chaîne a
+		String s_suff = s_ta.substring(i_caret, s_ta.length()); // Chaîne b 
+		int i_debut = Math.max(s_pref.lastIndexOf(" ")+1, 0);
+		String s_extract = s_pref.substring(i_debut, i_caret);
+		System.out.println("Tentative de complétion à partir de '" + s_extract + "'.");
 
-	    /* Compte le nombre de points pour savoir s'il faut compléter un nom de schéma, de table ou de champ */
-	    int dotCount = s_extract.replaceAll("[^.]", "").length();
-	    System.out.println("Nombre de points : " + dotCount);
+		/* Compte le nombre de points pour savoir s'il faut compléter un nom de schéma, de table ou de champ */
+		int dotCount = s_extract.replaceAll("[^.]", "").length();
+		System.out.println("Nombre de points : " + dotCount);
 	    
-	    String s_insert = null;
-	    String s_schema = null;
-	    String s_to_complete = null;
-	    String s_table = null;
+		String s_insert = null;
+		String s_schema = null;
+		String s_to_complete = null;
+		String s_table = null;
 
-	    switch(dotCount){
-	    case 0: 
-		System.out.println("Complétion de schéma");
-		s_to_complete = s_extract;
-		s_insert = complete(completor, s_to_complete);
-		if (s_insert == null){ // Si ce n'est pas un schéma qu'il faut chercher mais un alias
-		    System.out.println("Pas de schéma trouvé commençant par " + s_to_complete);
-		    System.out.println("Recherche d'un alias correspondant");
-		    s_insert = complete( (SortedMap) tm_alias, s_to_complete);
-		}
-
-		System.out.println("Cherche à insérer : " + s_insert);
-		break;
-	    case 1:
-		System.out.println("Complétion de table");
-		s_schema = extract(s_extract, 1);
-		s_to_complete = extract(s_extract, 2);
-		if (s_to_complete != null){
-		    s_insert = (completor.containsKey(s_schema)) ? complete(completor.get(s_schema), s_to_complete) : null;
-		    if (s_insert == null && tm_alias.containsKey(s_schema)){ // Si ce n'est pas une table qu'il faut chercher mais un champ
-			s_insert = complete( (SortedSet) tm_alias.get(s_schema), s_to_complete);
+		switch(dotCount){
+		case 0: 
+		    System.out.println("Complétion de schéma");
+		    s_to_complete = s_extract;
+		    s_insert = complete(completor, s_to_complete);
+		    if (s_insert == null){ // Si ce n'est pas un schéma qu'il faut chercher mais un alias
+			System.out.println("Pas de schéma trouvé commençant par " + s_to_complete);
+			System.out.println("Recherche d'un alias correspondant");
+			s_insert = complete( (SortedMap) tm_alias, s_to_complete);
 		    }
-		    
-		}
-		System.out.println("Cherche à insérer : " + s_insert);
-		break;
-	    case 2:
-		System.out.println("Complétion du champ");
-		s_schema = extract(s_extract, 1);
-		s_table = extract(s_extract, 2);
-		s_to_complete = extract(s_extract, 3);
-		s_insert = complete((SortedSet) completor.get(s_schema).get(s_table), s_to_complete);
-		System.out.println("Cherche à insérer : " + s_insert + " à partir de " + s_to_complete);
-		break;		
-	    }
 
-	    if (s_insert != null){
-		ta.setText(s_pref + s_insert.substring(s_to_complete.length()) + s_suff); // Insère la complétion
-		ta.setCaretPosition( ta.getText().length() - (s_ta.length() - i_caret)); // Remet le curseur où il était avant la complétion
-	    }	    
-	    System.out.println("TAB appuyé");
+		    System.out.println("Cherche à insérer : " + s_insert);
+		    break;
+		case 1:
+		    System.out.println("Complétion de table");
+		    s_schema = extract(s_extract, 1);
+		    s_to_complete = extract(s_extract, 2);
+		    if (s_to_complete != null){
+			s_insert = (completor.containsKey(s_schema)) ? complete(completor.get(s_schema), s_to_complete) : null;
+			if (s_insert == null && tm_alias.containsKey(s_schema)){ // Si ce n'est pas une table qu'il faut chercher mais un champ
+			    s_insert = complete( (SortedSet) tm_alias.get(s_schema), s_to_complete);
+			}
+		    
+		    }
+		    System.out.println("Cherche à insérer : " + s_insert);
+		    break;
+		case 2:
+		    System.out.println("Complétion du champ");
+		    s_schema = extract(s_extract, 1);
+		    s_table = extract(s_extract, 2);
+		    s_to_complete = extract(s_extract, 3);
+		    s_insert = complete((SortedSet) completor.get(s_schema).get(s_table), s_to_complete);
+		    System.out.println("Cherche à insérer : " + s_insert + " à partir de " + s_to_complete);
+		    break;		
+		}
+
+		if (s_insert != null){
+		    ta.insert(s_insert.substring(s_to_complete.length()), ta.getCaretPosition());
+		    ta.setCaretPosition( ta.getText().length() - (s_ta.length() - i_caret)); // Remet le curseur où il était avant la complétion
+		    if (s_insert.length() == s_to_complete.length()) { // Si on n'insère rien
+			i_TAB_press = 0; // Remet le compteur de TAB à zéro puisqu'il y a eu une complétion
+		    }
+		}	    
+		System.out.println("TAB appuyé");
+	    } else { // Plus d'une fois TAB appuyé
+		System.out.println("TAB appuyé deux fois");
+		if (popup != null){
+		    add(popup);
+		    popup.show(ta, 12, 20); // Position pifométrique
+		}
+		i_TAB_press = 0;
+	    }
+	} else {
+	    i_TAB_press = 0;
 	}
     }
 
-    public void keyReleased(KeyEvent evt){}
+    public void keyReleased(KeyEvent e) {
+    }
+
     
 
     /* Renvoie le sous-arbre dont les clefs dont le préfixe est prefix */
@@ -301,7 +343,16 @@ class MaFenetre extends Frame implements KeyListener {
 		    break;
 		}
 	    }
+	    /* Remplissage du menu contextuel */
+	    popup = new PopupMenu("Complétions possibles");
+	    MenuItem mi_completion;
+	    for (int j=0 ; j < sa_suff.length ; j++){
+		mi_completion = new MenuItem((String)sa_suff[j]);
+		popup.add(mi_completion);
+		mi_completion.addActionListener(this);
+	    }
 	    return sb_plus_long_prefixe.toString();	    
+	    
 	}
 
 	/* Assert: le tableau est vide */
@@ -309,7 +360,7 @@ class MaFenetre extends Frame implements KeyListener {
     }
 
     /* Si plus d'une solution ou pas de solution, renvoie NULL */
-    /* Remarque : cette requête est en tout point identique à celle concernant les SortedMaps. 
+    /* Remarque : cette méthode est en tout point identique à celle concernant les SortedMaps. 
        Comment n'en faire qu'une pour les deux ? */
     private String complete(SortedSet ss, String s_pref){
 	Object[] sa_suff = filterPrefix(ss, s_pref).toArray();	
@@ -379,7 +430,7 @@ class StatusBar extends Panel
 	}
 }
 
-class ToolBar extends Panel
+/*class ToolBar extends Panel
 {
 	// The constructor - called first when object is created
 	public ToolBar()
@@ -405,3 +456,221 @@ class ToolBar extends Panel
 		add(new Button("Help"));
 	}
 }
+*/
+
+
+/*
+public class Test {
+
+    public class SuggestionPanel {
+        private JList list;
+        private JPopupMenu popupMenu;
+        private String subWord;
+        private final int insertionPosition;
+
+        public SuggestionPanel(JTextArea textarea, int position, String subWord, Point location) {
+            this.insertionPosition = position;
+            this.subWord = subWord;
+            popupMenu = new JPopupMenu();
+            popupMenu.removeAll();
+            popupMenu.setOpaque(false);
+            popupMenu.setBorder(null);
+            popupMenu.add(list = createSuggestionList(position, subWord), BorderLayout.CENTER);
+            popupMenu.show(textarea, location.x, textarea.getBaseline(0, 0) + location.y);
+        }
+
+        public void hide() {
+            popupMenu.setVisible(false);
+            if (suggestion == this) {
+                suggestion = null;
+            }
+        }
+
+        private JList createSuggestionList(final int position, final String subWord) {
+            Object[] data = new Object[10];
+            for (int i = 0; i < data.length; i++) {
+                data[i] = subWord + i;
+            }
+            JList list = new JList(data);
+            list.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
+            list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            list.setSelectedIndex(0);
+            list.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2) {
+                        insertSelection();
+                    }
+                }
+            });
+            return list;
+        }
+
+        public boolean insertSelection() {
+            if (list.getSelectedValue() != null) {
+                try {
+                    final String selectedSuggestion = ((String) list.getSelectedValue()).substring(subWord.length());
+                    textarea.getDocument().insertString(insertionPosition, selectedSuggestion, null);
+                    return true;
+                } catch (BadLocationException e1) {
+                    e1.printStackTrace();
+                }
+                hideSuggestion();
+            }
+            return false;
+        }
+
+        public void moveUp() {
+            int index = Math.min(list.getSelectedIndex() - 1, 0);
+            selectIndex(index);
+        }
+
+        public void moveDown() {
+            int index = Math.min(list.getSelectedIndex() + 1, list.getModel().getSize() - 1);
+            selectIndex(index);
+        }
+
+        private void selectIndex(int index) {
+            final int position = textarea.getCaretPosition();
+            list.setSelectedIndex(index);
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    textarea.setCaretPosition(position);
+                };
+            });
+        }
+    }
+
+    private SuggestionPanel suggestion;
+    private JTextArea textarea;
+
+    protected void showSuggestionLater() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                showSuggestion();
+            }
+
+        });
+    }
+
+    protected void showSuggestion() {
+        hideSuggestion();
+        final int position = textarea.getCaretPosition();
+        Point location;
+        try {
+            location = textarea.modelToView(position).getLocation();
+        } catch (BadLocationException e2) {
+            e2.printStackTrace();
+            return;
+        }
+        String text = textarea.getText();
+        int start = Math.max(0, position - 1);
+        while (start > 0) {
+            if (!Character.isWhitespace(text.charAt(start))) {
+                start--;
+            } else {
+                start++;
+                break;
+            }
+        }
+        if (start > position) {
+            return;
+        }
+        final String subWord = text.substring(start, position);
+        if (subWord.length() < 2) {
+            return;
+        }
+        suggestion = new SuggestionPanel(textarea, position, subWord, location);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                textarea.requestFocusInWindow();
+            }
+        });
+    }
+
+    private void hideSuggestion() {
+        if (suggestion != null) {
+            suggestion.hide();
+        }
+    }
+
+    protected void initUI() {
+        final JFrame frame = new JFrame();
+        frame.setTitle("Test frame on two screens");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        JPanel panel = new JPanel(new BorderLayout());
+        textarea = new JTextArea(24, 80);
+        textarea.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
+        textarea.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+                if (e.getKeyChar() == KeyEvent.VK_ENTER) {
+                    if (suggestion != null) {
+                        if (suggestion.insertSelection()) {
+                            e.consume();
+                            final int position = textarea.getCaretPosition();
+                            SwingUtilities.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        textarea.getDocument().remove(position - 1, 1);
+                                    } catch (BadLocationException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DOWN && suggestion != null) {
+                    suggestion.moveDown();
+                } else if (e.getKeyCode() == KeyEvent.VK_UP && suggestion != null) {
+                    suggestion.moveUp();
+                } else if (Character.isLetterOrDigit(e.getKeyChar())) {
+                    showSuggestionLater();
+                } else if (Character.isWhitespace(e.getKeyChar())) {
+                    hideSuggestion();
+                }
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+            }
+        });
+        panel.add(textarea, BorderLayout.CENTER);
+        frame.add(panel);
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                new Test().initUI();
+            }
+        });
+    }
+
+    }*/
