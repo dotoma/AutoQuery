@@ -1,6 +1,5 @@
 À FAIRE :
 
-- double TAB : fenêtre contextuelle avec les différentes complétions possibles
 - coloration syntaxique
 - liste des schémas, tables et colonnes dans la partie droite de l'application
 - possibilité d'exécuter les requêtes
@@ -19,3 +18,4 @@ FAIT :
 - status bar pour indiquer 
   - combien de complétions possibles sur simple TAB
   - qu'un alias a été détecté après CTRL + R
+- double TAB : fenêtre contextuelle avec les différentes complétions possibles
