@@ -1,10 +1,18 @@
 /* GUI */
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JFrame;
 import javax.swing.JTree;
 import javax.swing.JScrollPane;
 import javax.swing.JEditorPane;
 import javax.swing.JSplitPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
 import java.awt.Dimension;
+import java.awt.Component;
+import java.awt.BorderLayout;
+import java.util.EventObject;
+
 
 /* SQL */
 import java.sql.ResultSet;
@@ -15,11 +23,15 @@ import java.sql.SQLException;
 
 /* Arbre */
 import java.util.TreeMap;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Map;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 
 public class VQueryBrowserSwing{
@@ -29,43 +41,23 @@ public class VQueryBrowserSwing{
 }
 
 
-class VQueryBrowser implements KeyListener{
+class VQueryBrowser extends JFrame implements ActionListener{
     /* Variables */
     private int keyTABCount = 0;
 
     /* Arborescence BDD */
     private JTree jt_arborescence_BDD;
-    private TreeMap  tm_arborescence_BDD;
+    private TreeMap <String, TreeMap<String, TreeSet<String>> >  tm_arborescence_BDD;
     private DefaultMutableTreeNode dmtn_root;
+    private TreeMap<String, TreeSet> tm_alias;
 
 
     /* Composants */
     JEditTextArea jeta_query;
+    StatusBar status_bar;
+    JPopupMenu popup;
 
 
-    /* KeyListener pour traiter les frappes de touches dans le 
-       JScrollPane jsp_query */
-    public final void keyPressed(final KeyEvent evt) {
-	if (evt.getKeyCode() == KeyEvent.VK_TAB){
-	    System.out.println("TAB appuyé");
-	    evt.consume();
-	    actionOnKeyTAB();
-	} else if (evt.getKeyCode() == KeyEvent.VK_SPACE){
-	    System.out.println("SPACE appuyé");
-	    evt.consume();
-	    //actionOnKeySPACE();
-	} else {
-	    
-	}
-    }
-
-    public final void keyReleased(final KeyEvent keyEvent) {
-
-    }
-
-    public final void keyTyped(final KeyEvent keyEvent) {
-
-    }
 
     public void increaseKeyTABCount(){
 	keyTABCount++;
@@ -79,10 +71,72 @@ class VQueryBrowser implements KeyListener{
 	return keyTABCount;
     }
 
+    public void actionOnKey(KeyEvent evt){
+	if (evt.getKeyCode() == KeyEvent.VK_TAB){
+	    this.actionOnKeyTAB();
+	} else if (evt.getKeyCode() == KeyEvent.VK_R && evt.getKeyModifiersText(evt.getModifiers()).equals("Ctrl") ) {	
+	    resetKeyTABCount();
+	    this.looksForAnAliasAndCreate();
+	} else {
+	    resetKeyTABCount();
+	}
+    }
+
+    private void looksForAnAliasAndCreate(){
+	    int i_caret = jeta_query.getCaretPosition();
+	    String s_ta = jeta_query.getText().replace("\n", " ").replace("\r", " ");
+	    String[] sa_words = s_ta.substring(0, i_caret).split(" ");
+	    System.out.println("Il y a " + sa_words.length + " mots.");
+	    /* Trouve les deux (trois s'il y a un alias) derniers mots */ 
+	    boolean b_alias_trouve = false;
+	    boolean b_chemin_trouve = false;
+	    int i_alias = -1;
+	    int i_chemin = -1;
+	    int i = sa_words.length - 1;
+	    while (i >= 0 && (!b_alias_trouve || !b_chemin_trouve)){
+		if (sa_words[i].equals("") || sa_words[i].equalsIgnoreCase("as")){
+		    i--;
+		    continue;
+		}
+
+		if (!b_alias_trouve){
+		    b_alias_trouve = true;
+		    i_alias = i;
+		    i--;
+		} else {
+		    b_chemin_trouve = true;
+		    i_chemin = i;
+		    i--;
+		}
+	    }
+
+	    /* Plutôt qu'une fenêtre de confirmation, ce serait mieux que juste la création de l'alias soit notée dans une sorte de status bar en bas de l'application */
+	    if (b_alias_trouve && b_chemin_trouve){
+	       	status_bar.showStatus("Ajout alias : " + sa_words[i_alias] + " pour " + sa_words[i_chemin]);
+		System.out.println("Ajout alias : " + sa_words[i_alias] + " pour " + sa_words[i_chemin]);
+		addAlias(sa_words[i_alias], sa_words[i_chemin]);
+	    }
+
+	    
+	    System.out.println("Alias : " + sa_words[i_alias] + ", chemin : " + sa_words[i_chemin]);
+    }
+	    
+    public void addAlias(String alias, String path){
+	System.out.println("Ajout de l'alias " + alias + " pour " + path + ".");
+	
+	String[] sa_path = path.split("\\.");
+	if (sa_path.length == 2){
+	    if (tm_arborescence_BDD.containsKey(sa_path[0]) && tm_arborescence_BDD.get(sa_path[0]).containsKey(sa_path[1])){
+		tm_alias.put(alias, (TreeSet) tm_arborescence_BDD.get(sa_path[0]).get(sa_path[1])); // Ajoute un lien vers les champs
+		System.out.println("Alias ajouté");
+	    }
+	}
+    }
+
     private void actionOnKeyTAB(){
 	increaseKeyTABCount();
 	if (getKeyTABCount() <= 1){ /* Une fois TAB appuyé */
-	    String s_query = jeta_query.getText();
+	    String s_query = jeta_query.getText().replace("\n", " ").replace("\r", " ");
 	    
 
 	    /* Récupère le mot entre le dernier espace précédant le curseur et le curseur. S'il n'y a pas d'espace, ça prend toute la sous-chaîne gauche jusqu'au curseur. */
@@ -91,18 +145,191 @@ class VQueryBrowser implements KeyListener{
 	    String s_suff = s_query.substring(i_caret); /* Chaîne b */
 	    int i_debut = Math.max(s_pref.lastIndexOf(" ")+1, 0);
 	    String s_extract = s_pref.substring(i_debut, i_caret);
-	    System.out.println("Tentative de complétion à partir de '" + s_extract);	    
+	    System.out.println("Tentative de complétion à partir de '" + s_extract + "'");	    
 	    System.out.println("s_pref vaut '" + s_pref + "'");
 	    System.out.println("s_suff vaut '" + s_suff + "'");
+
+
+		/* Compte le nombre de points pour savoir s'il faut compléter un nom de schéma, de table ou de champ */
+		int dotCount = s_extract.replaceAll("[^.]", "").length();
+		System.out.println("Nombre de points : " + dotCount);
+	    
+		String s_insert = null;
+		String s_schema = null;
+		String s_to_complete = null;
+		String s_table = null;
+
+		switch(dotCount){
+		case 0: 
+		    System.out.println("Complétion de schéma");
+		    s_to_complete = s_extract;
+		    s_insert = complete(tm_arborescence_BDD, s_to_complete);
+		    if (s_insert == null){ // Si ce n'est pas un schéma qu'il faut chercher mais un alias
+			System.out.println("Pas de schéma trouvé commençant par " + s_to_complete);
+			System.out.println("Recherche d'un alias correspondant");
+			s_insert = complete( (SortedMap) tm_alias, s_to_complete);
+		    }
+
+		    System.out.println("Cherche à insérer : " + s_insert);
+		    break;
+		case 1:
+		    System.out.println("Complétion de table");
+		    s_schema = extract(s_extract, 1);
+		    s_to_complete = extract(s_extract, 2);
+		    if (s_to_complete != null){
+			s_insert = (tm_arborescence_BDD.containsKey(s_schema)) ? complete(tm_arborescence_BDD.get(s_schema), s_to_complete) : null;
+			if (s_insert == null && tm_alias.containsKey(s_schema)){ // Si ce n'est pas une table qu'il faut chercher mais un champ
+			    s_insert = complete( (SortedSet) tm_alias.get(s_schema), s_to_complete);
+			}
+		    
+		    }
+		    System.out.println("Cherche à insérer : " + s_insert);
+		    break;
+		case 2:
+		    System.out.println("Complétion du champ");
+		    s_schema = extract(s_extract, 1);
+		    s_table = extract(s_extract, 2);
+		    s_to_complete = extract(s_extract, 3);
+		    s_insert = complete((SortedSet) tm_arborescence_BDD.get(s_schema).get(s_table), s_to_complete);
+		    System.out.println("Cherche à insérer : " + s_insert + " à partir de " + s_to_complete);
+		    break;		
+		}
+
+		if (s_insert != null){
+		    jeta_query.setSelectedText(s_insert.substring(s_to_complete.length()));
+		    jeta_query.setCaretPosition( jeta_query.getText().length() - (s_query.length() - i_caret)); // Remet le curseur où il était avant la complétion
+		    if (s_insert.length() == s_to_complete.length()) { // Si on n'insère rien
+			resetKeyTABCount(); // Remet le compteur de TAB à zéro puisqu'il y a eu une complétion
+		    }
+		}	    
+		System.out.println("TAB appuyé");
+
+
 	} else { /* Plus d'une fois TAB appuyé */
+	    System.out.println("TAB appuyé deux fois");
+	    if (popup != null){
+		add(popup);
+		    popup.show(jeta_query, 12, 20); // Position pifométrique
+	    }
+	    this.resetKeyTABCount();
 	    
 	}
     }
 
+
+    /* Renvoie le i-ème élément dans une série d'éléments séparés par '.' */
+    private String extract(String s, int i){
+	return(s.split("\\.")[i-1]);
+    }
+
+    /* Si plus d'une solution ou pas de solution, renvoie NULL */
+    private String complete(SortedMap tm, String s_pref){
+	Object[] sa_suff = filterPrefix(tm, s_pref).keySet().toArray();	
+	int nb_comp = sa_suff.length; // nombre de complétion(s) possible(s)
+	status_bar.showStatus(nb_comp + " complétion(s) possible(s)");
+	if (nb_comp == 1){
+	    return ((String) sa_suff[0]);
+	} else if (nb_comp > 1){
+	    String s_premier = (String)sa_suff[0];
+	    int i = s_pref.length();
+	    StringBuffer sb_plus_long_prefixe = new StringBuffer(s_pref);
+	    System.out.println("Préfixe le plus long à partir de " + sb_plus_long_prefixe.toString());
+	    
+	    while (i < s_premier.length()){
+		System.out.println(sb_plus_long_prefixe.toString() + s_premier.charAt(i) + " est un préfixe commun ?");
+		
+		Object[] sa_comp = filterPrefix(tm, sb_plus_long_prefixe.toString() + s_premier.charAt(i)).keySet().toArray();
+		if (sa_comp.length == sa_suff.length){
+		    sb_plus_long_prefixe.append(s_premier.charAt(i));
+		    i++;
+		} else {
+		    break;
+		}
+	    }
+	    /* Remplissage du menu contextuel */
+	    popup = new JPopupMenu("Complétions possibles");
+	    JMenuItem mi_completion;
+	    for (int j=0 ; j < sa_suff.length ; j++){
+		mi_completion = new JMenuItem((String)sa_suff[j]);
+		popup.add(mi_completion);
+		mi_completion.addActionListener(this);
+		}
+	    return sb_plus_long_prefixe.toString();	    
+	    
+	}
+
+	/* Assert: le tableau est vide */
+	return null;
+    }
+
+    /* Si plus d'une solution ou pas de solution, renvoie NULL */
+    /* Remarque : cette méthode est en tout point identique à celle concernant les SortedMaps. 
+       Comment n'en faire qu'une pour les deux ? */
+    private String complete(SortedSet ss, String s_pref){
+	Object[] sa_suff = filterPrefix(ss, s_pref).toArray();	
+	int nb_comp = sa_suff.length; // nombre de complétion(s) possible(s)
+	status_bar.showStatus(nb_comp + " complétion(s) possible(s)");
+	if (nb_comp == 1){
+	    return ((String) sa_suff[0]);
+	} else if (nb_comp > 1){
+	    String s_premier = (String)sa_suff[0];
+	    int i = s_pref.length();
+	    StringBuffer sb_plus_long_prefixe = new StringBuffer(s_pref);
+	    System.out.println("Préfixe le plus long à partir de " + sb_plus_long_prefixe.toString());
+	    while (i < s_premier.length()){
+		System.out.println(s_pref + s_premier.charAt(i) + " est un préfixe commun ?");
+		
+		Object[] sa_comp = filterPrefix(ss, sb_plus_long_prefixe.toString() + s_premier.charAt(i)).toArray();
+		if (sa_comp.length == sa_suff.length){
+		    sb_plus_long_prefixe.append(s_premier.charAt(i));
+		    i++;
+		} else {
+		    break;
+		}
+	    }
+	    return sb_plus_long_prefixe.toString();	    
+	}
+
+	/* Assert: le tableau est vide */
+	return null;
+
+    }
+
+    /* Renvoie le sous-arbre dont les clefs dont le préfixe est prefix */
+    private <V> SortedMap<String, V> filterPrefix(SortedMap<String, V> baseMap, String prefix){
+	if(prefix.length() > 0){
+	    char nextLetter = (char) (prefix.charAt(prefix.length()-1)+1);
+	    String end = prefix.substring(0, prefix.length()-1) + nextLetter;
+	    return baseMap.subMap(prefix, end);
+	}
+	return baseMap;
+    }
+
+
+    /* Renvoie le sous-ensemble des éléments dont le préfixe est prefix */
+    private SortedSet<String> filterPrefix(SortedSet<String> baseSet, String prefix){
+	if(prefix.length() > 0){
+	    char nextLetter = (char) (prefix.charAt(prefix.length()-1)+1);
+	    String end = prefix.substring(0, prefix.length()-1) + nextLetter;
+	    System.out.println("Éléments entre " + prefix + " et " + end);
+	    return baseSet.subSet(prefix, end);
+	}
+	return baseSet;
+    }
+
+
+
+
     public VQueryBrowser(String args[]){
-	JFrame frame = new JFrame("VQueryBrowser");
-	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	super("VQueryBrowser");
 	
+	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	
+
+	/* Sauvegarde des alias */
+	tm_alias = new TreeMap();
+
+
 	/* Crée le TreeMap à partir de information_schema */
 	Connection con = null;
 	try {
@@ -141,13 +368,18 @@ class VQueryBrowser implements KeyListener{
 	/* Crée la fenêtre avec ses composants */
 	JScrollPane jsp_treeView = new JScrollPane(jt_arborescence_BDD); /* Crée la hiérarchie de la BDD */
 	jeta_query = new JEditTextArea(); /* Crée le composant pour écrire les requêtes */
-	jeta_query.addKeyListener(this);
+
 	jeta_query.setFocusTraversalKeysEnabled(false);
 	jeta_query.setEditable(true);
 	jeta_query.setTokenMarker(new SQLTokenMarker());
-
+	
+	status_bar = new StatusBar();
+	JPanel panel = new JPanel(new BorderLayout());
+	panel.add("South", status_bar);
+	panel.add("Center", jeta_query);
+	
 	JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-	splitPane.setLeftComponent(jeta_query);
+	splitPane.setLeftComponent(panel);
 	splitPane.setBottomComponent(jsp_treeView);
 	
 
@@ -156,9 +388,9 @@ class VQueryBrowser implements KeyListener{
 	splitPane.setDividerLocation(600); 
 	splitPane.setPreferredSize(new Dimension(900, 400));
 
-	frame.add(splitPane);
-	frame.pack();
-	frame.setVisible(true);
+	add(splitPane);
+	pack();
+	setVisible(true);
     }
 
     private void createTree(DefaultMutableTreeNode top, TreeMap <String, TreeMap<String, TreeSet<String>> > tm_arbre){
@@ -224,6 +456,70 @@ class VQueryBrowser implements KeyListener{
 	return tm_schemas;
     }
 
+    /* Retrouve l'instance de VQueryBrowser qui contrôle l'objet lié à l'événement */
+    public static VQueryBrowser getVQueryBrowserParent(EventObject evt){
+	if(evt != null)
+	    {
+		Object o = evt.getSource();
+		if(o instanceof Component)
+		    {
+			// find the parent VQueryBrowser
+			Component c = (Component)o;
+			for(;;)
+			{
+				if(c instanceof VQueryBrowser)
+					return (VQueryBrowser)c;
+				else if(c == null)
+					break;
+				if(c instanceof JPopupMenu)
+					c = ((JPopupMenu)c)
+						.getInvoker();
+				else
+					c = c.getParent();
+			}
+		}
+	}
+	
+	return null; /* Cas pas possible */
+	
+    }
+
+    public final void actionPerformed(final ActionEvent e) {
+	// Dans le cas d'un clic ou ENTER dans le menu contextuel :
+	// Insérer la complétion choisie
+	System.out.println("String lié au clic : " + e.getActionCommand());
+	int i_LastDotPosition = jeta_query.getText().substring(0, jeta_query.getCaretPosition()).lastIndexOf(".");
+	String s_pref = jeta_query.getText().substring(0, i_LastDotPosition+1);
+	String s_suff = jeta_query.getText().substring(jeta_query.getCaretPosition());
+	jeta_query.setText(s_pref + e.getActionCommand() + s_suff);
+	jeta_query.setCaretPosition( s_pref.length() + e.getActionCommand().length());
+	// Supprimer ce menu
+	remove(popup);
+	popup = null;
+    }
 
 
+}
+
+
+class StatusBar extends JPanel
+{
+	private JLabel info;
+
+	// The constructor 
+	public StatusBar()
+	{
+		setLayout(new BorderLayout());
+
+		// Je crée un Label bourré d'espaces parce que je ne sais pas
+		// pas faire en sorte que le Label puisse accueillir un grand
+		// texte sinon.
+		add("West", info = new JLabel("                                                                                                                       ", JLabel.LEFT));
+		info.setMinimumSize(this.getSize());
+       	}
+
+	public void showStatus(String status)
+	{
+		info.setText(status);
+	}
 }

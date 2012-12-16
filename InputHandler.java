@@ -309,6 +309,9 @@ public abstract class InputHandler extends KeyAdapter
 		}
 	}
 
+
+
+
 	/**
 	 * Returns the text area that fired the specified event.
 	 * @param evt The event
@@ -716,17 +719,7 @@ public abstract class InputHandler extends KeyAdapter
 	{
 		public void actionPerformed(ActionEvent evt)
 		{
-			JEditTextArea textArea = getTextArea(evt);
 
-			if(!textArea.isEditable())
-			{
-				textArea.getToolkit().beep();
-				return;
-			}
-			System.out.println("TAB appuyée");
-
-
-			textArea.overwriteSetSelectedText("\t");
 		}
 	}
 
@@ -1051,6 +1044,7 @@ public abstract class InputHandler extends KeyAdapter
 	{
 		public void actionPerformed(ActionEvent evt)
 		{
+		    
 			JEditTextArea textArea = getTextArea(evt);
 			String str = evt.getActionCommand();
 			int repeatCount = textArea.getInputHandler().getRepeatCount();

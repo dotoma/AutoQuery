@@ -1527,6 +1527,13 @@ public class JEditTextArea extends JComponent
 			inputHandler.keyTyped(evt);
 			break;
 		case KeyEvent.KEY_PRESSED:
+			VQueryBrowser app = VQueryBrowser.getVQueryBrowserParent(evt);
+
+			/* Renvoie la touche à l'instance de VQueryBrowser. 
+			   Elle peut faire des traitements avant de rendre 
+			   la main à l'InputHandler */
+			app.actionOnKey(evt);
+
 			inputHandler.keyPressed(evt);
 			break;
 		case KeyEvent.KEY_RELEASED:

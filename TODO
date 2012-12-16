@@ -1,13 +1,12 @@
 À FAIRE :
 
-- coloration syntaxique
-- liste des schémas, tables et colonnes dans la partie droite de l'application
 - possibilité d'exécuter les requêtes
   - affichage dans l'application
   - enregistrement en CSV
 - démarrage sans connexion internet
   - prendre le dernier arbre disponible ? 
-
+- double TAB : menu contextuel avec les différentes complétions possibles
+- reconnaissance des mots-clefs du langage et mise en majuscule automatiquement
 
 
 FAIT :
@@ -15,7 +14,9 @@ FAIT :
 - complétion du plus long préfixe commun et de l'identificateur complet si qu'une possibilité
   - alias, schémas, tables
   - champs
+  - fonctionne même si précédé de \n
+- coloration syntaxique
+- liste des schémas, tables et colonnes dans la partie droite de l'application
 - status bar pour indiquer 
   - combien de complétions possibles sur simple TAB
   - qu'un alias a été détecté après CTRL + R
-- double TAB : fenêtre contextuelle avec les différentes complétions possibles

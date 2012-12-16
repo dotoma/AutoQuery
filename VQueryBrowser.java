@@ -406,29 +406,6 @@ class MaFenetre extends Frame implements KeyListener, ActionListener {
     }
 }
 
-class StatusBar extends Panel
-{
-	private Label info;
-
-	// The constructor 
-	public StatusBar()
-	{
-		setLayout(new BorderLayout());
-
-		// Je crée un Label bourré d'espaces parce que je ne sais pas
-		// pas faire en sorte que le Label puisse accueillir un grand
-		// texte sinon.
-		add("West", info = new Label("                                                                                                                       ", Label.LEFT));
-		info.setMinimumSize(this.getSize());
-		System.out.println("Size info : " + info.getSize().toString());
-		System.out.println("Panel info : " + this.getPreferredSize().toString());
-       	}
-
-	public void showStatus(String status)
-	{
-		info.setText(status);
-	}
-}
 
 /*class ToolBar extends Panel
 {
