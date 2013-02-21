@@ -66,7 +66,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
     StatusBar status_bar;
     JPopupMenu popup;
     JTabbedPane jtp_onglets;
-    JEditTextArea jeta_query; /* Le JEditTextArea de l'onglet affiché */
+    //JEditTextArea jeta_query; /* Le JEditTextArea de l'onglet affiché */
 
     public void increaseKeyTABCount(){
 	keyTABCount++;
@@ -93,6 +93,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
     }
 
     private void looksForAnAliasAndCreate(){
+	JEditTextArea jeta_query = getActiveJEditTextArea();
 	    int i_caret = jeta_query.getCaretPosition();
 	    String s_ta = jeta_query.getText().replace("\n", " ").replace("\r", " ");
 	    String[] sa_words = s_ta.substring(0, i_caret).split(" ");
@@ -143,6 +144,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
     }
 
     private void actionOnKeyTAB(){
+	JEditTextArea jeta_query = getActiveJEditTextArea();
 	increaseKeyTABCount();
 	if (getKeyTABCount() <= 1){ /* Une fois TAB appuyé */
 	    String s_query = jeta_query.getText().replace("\n", " ").replace("\r", " ");
@@ -449,12 +451,17 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	setVisible(true);
     }
 
+    /** Renvoie le JEditTextArea sur l'onglet sélectionné **/
+    private JEditTextArea getActiveJEditTextArea(){
+	return vector_jeta.elementAt(jtp_onglets.getSelectedIndex());
+    }
+
     private JPanel makePanelForTab(){
 	int nbTabs = jtp_onglets.getTabCount();
 
 	/** Crée le contenu d'un onglet
 	    Crée le composant pour écrire les requêtes **/
-	jeta_query = new JEditTextArea(); 
+	JEditTextArea jeta_query = new JEditTextArea(); 
 	jeta_query.setFocusTraversalKeysEnabled(false);
 	jeta_query.setEditable(true);
 	jeta_query.setTokenMarker(new SQLTokenMarker());
@@ -562,6 +569,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
     }
 
     public final void actionPerformed(final ActionEvent e) {
+	JEditTextArea jeta_query = getActiveJEditTextArea();
 	// Dans le cas d'un clic ou ENTER dans le menu contextuel :
 	// Insérer la complétion choisie
 	System.out.println("String lié au clic : " + e.getActionCommand());

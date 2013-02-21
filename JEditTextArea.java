@@ -98,7 +98,8 @@ public class JEditTextArea extends JComponent
 
 		// Load the defaults
 		setInputHandler(defaults.inputHandler);
-		setDocument(defaults.document);
+		//setDocument(defaults.document);
+		setDocument(new SyntaxDocument());
 		editable = defaults.editable;
 		caretVisible = defaults.caretVisible;
 		caretBlinks = defaults.caretBlinks;
