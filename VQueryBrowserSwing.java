@@ -1,4 +1,6 @@
 /* GUI */
+import javax.swing.JComponent;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
@@ -8,10 +10,16 @@ import javax.swing.JEditorPane;
 import javax.swing.JSplitPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
+import javax.swing.KeyStroke;
 import java.awt.Dimension;
 import java.awt.Component;
 import java.awt.BorderLayout;
 import java.util.EventObject;
+import java.util.Vector;
 
 
 /* SQL */
@@ -42,8 +50,10 @@ public class VQueryBrowserSwing{
 
 
 class VQueryBrowser extends JFrame implements ActionListener{
+
     /* Variables */
     private int keyTABCount = 0;
+    private Vector<JEditTextArea> vector_jeta = new Vector(); /* Liste tous les JEditTextArea */ 
 
     /* Arborescence BDD */
     private JTree jt_arborescence_BDD;
@@ -53,11 +63,10 @@ class VQueryBrowser extends JFrame implements ActionListener{
 
 
     /* Composants */
-    JEditTextArea jeta_query;
     StatusBar status_bar;
     JPopupMenu popup;
-
-
+    JTabbedPane jtp_onglets;
+    JEditTextArea jeta_query; /* Le JEditTextArea de l'onglet affiché */
 
     public void increaseKeyTABCount(){
 	keyTABCount++;
@@ -79,6 +88,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	    this.looksForAnAliasAndCreate();
 	} else {
 	    resetKeyTABCount();
+	    status_bar.showStatus("");
 	}
     }
 
@@ -87,7 +97,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	    String s_ta = jeta_query.getText().replace("\n", " ").replace("\r", " ");
 	    String[] sa_words = s_ta.substring(0, i_caret).split(" ");
 	    System.out.println("Il y a " + sa_words.length + " mots.");
-	    /* Trouve les deux (trois s'il y a un alias) derniers mots */ 
+	    /* Trouve les deux (trois s'il y a un "AS") derniers mots */ 
 	    boolean b_alias_trouve = false;
 	    boolean b_chemin_trouve = false;
 	    int i_alias = -1;
@@ -110,7 +120,6 @@ class VQueryBrowser extends JFrame implements ActionListener{
 		}
 	    }
 
-	    /* Plutôt qu'une fenêtre de confirmation, ce serait mieux que juste la création de l'alias soit notée dans une sorte de status bar en bas de l'application */
 	    if (b_alias_trouve && b_chemin_trouve){
 	       	status_bar.showStatus("Ajout alias : " + sa_words[i_alias] + " pour " + sa_words[i_chemin]);
 		System.out.println("Ajout alias : " + sa_words[i_alias] + " pour " + sa_words[i_chemin]);
@@ -168,6 +177,10 @@ class VQueryBrowser extends JFrame implements ActionListener{
 			System.out.println("Pas de schéma trouvé commençant par " + s_to_complete);
 			System.out.println("Recherche d'un alias correspondant");
 			s_insert = complete( (SortedMap) tm_alias, s_to_complete);
+			if (s_insert == null){ // Si ce n'est pas non plus un début d'alias, on empeche la complétion
+			    this.resetKeyTABCount();
+			}
+			    
 		    }
 
 		    System.out.println("Cherche à insérer : " + s_insert);
@@ -195,10 +208,10 @@ class VQueryBrowser extends JFrame implements ActionListener{
 		    break;		
 		}
 
-		if (s_insert != null){
+		if (s_insert != null){ /* Si s_insert est bien le préfixe d'un schéma, d'un alias, d'une table ou d'un champ*/
 		    jeta_query.setSelectedText(s_insert.substring(s_to_complete.length()));
 		    jeta_query.setCaretPosition( jeta_query.getText().length() - (s_query.length() - i_caret)); // Remet le curseur où il était avant la complétion
-		    if (s_insert.length() == s_to_complete.length()) { // Si on n'insère rien
+		    if (s_insert.length() == s_to_complete.length()) { // Si on n'insère rien parce qu'il y a plusieurs possibilités
 			resetKeyTABCount(); // Remet le compteur de TAB à zéro puisqu'il y a eu une complétion
 		    }
 		}	    
@@ -209,7 +222,8 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	    System.out.println("TAB appuyé deux fois");
 	    if (popup != null){
 		add(popup);
-		    popup.show(jeta_query, 12, 20); // Position pifométrique
+		System.out.println("Affichage d'un popup des choix possibles");
+		popup.show(jeta_query, 12, 20); // Position pifométrique
 	    }
 	    this.resetKeyTABCount();
 	    
@@ -219,7 +233,12 @@ class VQueryBrowser extends JFrame implements ActionListener{
 
     /* Renvoie le i-ème élément dans une série d'éléments séparés par '.' */
     private String extract(String s, int i){
-	return(s.split("\\.")[i-1]);
+	String[] composants = s.split("\\.");
+	if (i > composants.length){
+	    return("");
+	} else {
+	    return(composants[i-1]);
+	}
     }
 
     /* Si plus d'une solution ou pas de solution, renvoie NULL */
@@ -287,6 +306,15 @@ class VQueryBrowser extends JFrame implements ActionListener{
 		    break;
 		}
 	    }
+	    /* Remplissage du menu contextuel */
+	    popup = new JPopupMenu("Complétions possibles");
+	    JMenuItem mi_completion;
+	    for (int j=0 ; j < sa_suff.length ; j++){
+		mi_completion = new JMenuItem((String)sa_suff[j]);
+		popup.add(mi_completion);
+		mi_completion.addActionListener(this);
+		}
+
 	    return sb_plus_long_prefixe.toString();	    
 	}
 
@@ -351,6 +379,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	} finally {
 	    try {
 		if (con != null){
+		    System.out.println("Fermeture de la connexion à la BDD");
 		    con.close();
 		}
 	    } catch (SQLException e) {}
@@ -365,32 +394,80 @@ class VQueryBrowser extends JFrame implements ActionListener{
 
 
 
+
 	/* Crée la fenêtre avec ses composants */
 	JScrollPane jsp_treeView = new JScrollPane(jt_arborescence_BDD); /* Crée la hiérarchie de la BDD */
-	jeta_query = new JEditTextArea(); /* Crée le composant pour écrire les requêtes */
 
-	jeta_query.setFocusTraversalKeysEnabled(false);
-	jeta_query.setEditable(true);
-	jeta_query.setTokenMarker(new SQLTokenMarker());
+	/* Crée le composant qui accueille les onglets */
+	jtp_onglets = new JTabbedPane(SwingConstants.TOP);
+	jtp_onglets.setOpaque(true);
+
+
+	/* Prépare un JPanel pour onglet */
+	JPanel panel_pour_onglet = makePanelForTab();
 	
+	/* Ajoute un onglet aux composants gérant les onglets*/
+	jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), panel_pour_onglet);
+
+	/* Crée la status bar */
 	status_bar = new StatusBar();
-	JPanel panel = new JPanel(new BorderLayout());
-	panel.add("South", status_bar);
-	panel.add("Center", jeta_query);
-	
+
+
+	/* Crée le panel de gauche */
+	JPanel panel_gauche = new JPanel();
+	/** Accueil des composants **/
+	panel_gauche.add("Center", jtp_onglets);
+	panel_gauche.add("South", status_bar);
+
+
+	/* Crée le JSplitPane qui accueille les onglets à gauche et l'arbre à droite */
 	JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-	splitPane.setLeftComponent(panel);
+	splitPane.setLeftComponent(panel_gauche);
 	splitPane.setBottomComponent(jsp_treeView);
 	
 
-	jeta_query.setMinimumSize(new Dimension(600, 400));
-	jsp_treeView.setMinimumSize(new Dimension(300, 400));
-	splitPane.setDividerLocation(600); 
-	splitPane.setPreferredSize(new Dimension(900, 400));
+	jsp_treeView.setMinimumSize(new Dimension(300, 500));
+	splitPane.setDividerLocation(670); 
+	splitPane.setPreferredSize(new Dimension(1000, 500));
 
 	add(splitPane);
+
+	JMenuBar menu_bar = new JMenuBar();
+	JMenu menu_onglets = new JMenu("Onglets");
+	JMenuItem menu_onglets_ajout = new JMenuItem("Ajouter", KeyEvent.VK_A);
+	menu_onglets_ajout.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
+	menu_onglets_ajout.addActionListener(new ActionListener(){
+		public void actionPerformed(ActionEvent e){
+		    jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), makePanelForTab());
+		}
+	    });
+	menu_onglets.add(menu_onglets_ajout);
+	menu_bar.add(menu_onglets);
+	add("North", menu_bar);
+
 	pack();
 	setVisible(true);
+    }
+
+    private JPanel makePanelForTab(){
+	int nbTabs = jtp_onglets.getTabCount();
+
+	/** Crée le contenu d'un onglet
+	    Crée le composant pour écrire les requêtes **/
+	jeta_query = new JEditTextArea(); 
+	jeta_query.setFocusTraversalKeysEnabled(false);
+	jeta_query.setEditable(true);
+	jeta_query.setTokenMarker(new SQLTokenMarker());
+	jeta_query.setMinimumSize(new Dimension(500, 300));
+
+	/** Enregistre le JEditTextArea pour pouvoir faire des opérations plus tard dessus **/
+	System.out.println("Ajout d'un JEditTextArea (dont le document est " + jeta_query.getDocument().hashCode() + ") en position " + nbTabs);
+	vector_jeta.add(nbTabs, jeta_query); 
+	
+	/** Crée le JPanel dans lequel on met les composants de chaque onglet **/
+	JPanel panel = new JPanel(new BorderLayout());
+	panel.add("Center", jeta_query);
+	return panel;
     }
 
     private void createTree(DefaultMutableTreeNode top, TreeMap <String, TreeMap<String, TreeSet<String>> > tm_arbre){

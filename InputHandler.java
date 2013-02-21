@@ -69,6 +69,9 @@ public abstract class InputHandler extends KeyAdapter
 	public static final ActionListener SELECT_PREV_WORD = new prev_word(true);
 	public static final ActionListener REPEAT = new repeat();
 	public static final ActionListener TOGGLE_RECT = new toggle_rect();
+    public static final ActionListener COPY = new copy(); // Ajout MAD
+    public static final ActionListener CUT = new cut(); // Ajout MAD
+    public static final ActionListener PASTE = new paste(); // Ajout MAD
 
 	// Default action
 	public static final ActionListener INSERT_CHAR = new insert_char();
@@ -112,6 +115,9 @@ public abstract class InputHandler extends KeyAdapter
 		actions.put("repeat",REPEAT);
 		actions.put("toggle-rect",TOGGLE_RECT);
 		actions.put("insert-char",INSERT_CHAR);
+		actions.put("cut",CUT); // Ajouts MAD
+		actions.put("copy",COPY);
+		actions.put("paste",PASTE);
 	}
 
 	/**
@@ -1062,4 +1068,41 @@ public abstract class InputHandler extends KeyAdapter
 			}
 		}
 	}
+
+    // Ajout MAD de copy, cut et paste 
+
+    public static class copy implements ActionListener
+    {
+		public void actionPerformed(ActionEvent evt)
+		{
+		    
+			JEditTextArea textArea = getTextArea(evt);
+			textArea.copy();
+		}
+	
+    }
+
+    public static class paste implements ActionListener
+    {
+		public void actionPerformed(ActionEvent evt)
+		{
+		    
+			JEditTextArea textArea = getTextArea(evt);
+			textArea.paste();
+		}
+	
+    }
+
+    public static class cut implements ActionListener
+    {
+		public void actionPerformed(ActionEvent evt)
+		{
+		    
+			JEditTextArea textArea = getTextArea(evt);
+			textArea.cut();
+		}
+	
+    }
+
+
 }

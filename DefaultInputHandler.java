@@ -73,6 +73,10 @@ public class DefaultInputHandler extends InputHandler
 		addKeyBinding("S+DOWN",SELECT_NEXT_LINE);
 
 		addKeyBinding("C+ENTER",REPEAT);
+
+		addKeyBinding("C+C",COPY);
+		addKeyBinding("C+V",PASTE);
+		addKeyBinding("C+X",CUT);
 	}
 
 	/**

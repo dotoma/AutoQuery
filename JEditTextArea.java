@@ -108,6 +108,7 @@ public class JEditTextArea extends JComponent
 
 		// We don't seem to get the initial focus event?
 		focusedComponent = this;
+
 	}
 
 	/**

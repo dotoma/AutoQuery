@@ -1,1 +1,6 @@
 Pour ajouter au CLASSPATH le connecteur JDBC : export CLASSPATH=/usr/share/java/mysql-connector-java-5.1.10.jar:$CLASSPATH
+
+Pour exécuter l'application : java -cp .:/usr/share/java/mysql-connector-java-5.1.10.jar VQueryBrowserSwing
+
+Pour compiler + exécuter : javac -cp .:/usr/share/java/mysql-connector-java-5.1.10.jar VQueryBrowserSwing.java && java VQueryBrowserSwing
+

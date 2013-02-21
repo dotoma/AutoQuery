@@ -5,8 +5,13 @@
   - enregistrement en CSV
 - démarrage sans connexion internet
   - prendre le dernier arbre disponible ? 
-- double TAB : menu contextuel avec les différentes complétions possibles
-- reconnaissance des mots-clefs du langage et mise en majuscule automatiquement
+- mise en majuscule automatiquement des mots-clefs
+- historique des requêtes
+- signets
+- recherche de champs/tables dans l'arbre à droite
+- ajouter un onglet
+- onglets nommés 
+- icône pour l'application 
 
 
 FAIT :
@@ -20,3 +25,10 @@ FAIT :
 - status bar pour indiquer 
   - combien de complétions possibles sur simple TAB
   - qu'un alias a été détecté après CTRL + R
+- double TAB : menu contextuel avec les complétions possibles pour
+   - les schémas,
+   - les alias,
+   - les tables,
+   - les champs
+- COPIER/COLLER
+- la status bar, après avoir affiché "X complétions possibles" s'efface quand on se remet à taper
