@@ -404,12 +404,8 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	jtp_onglets = new JTabbedPane(SwingConstants.TOP);
 	jtp_onglets.setOpaque(true);
 
-
-	/* Prépare un JPanel pour onglet */
-	JPanel panel_pour_onglet = makePanelForTab();
-	
 	/* Ajoute un onglet aux composants gérant les onglets*/
-	jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), panel_pour_onglet);
+	makeTab();
 
 	/* Crée la status bar */
 	status_bar = new StatusBar();
@@ -440,7 +436,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	menu_onglets_ajout.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
 	menu_onglets_ajout.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
-		    jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), makePanelForTab());
+		    makeTab();
 		}
 	    });
 	menu_onglets.add(menu_onglets_ajout);
@@ -454,6 +450,11 @@ class VQueryBrowser extends JFrame implements ActionListener{
     /** Renvoie le JEditTextArea sur l'onglet sélectionné **/
     private JEditTextArea getActiveJEditTextArea(){
 	return vector_jeta.elementAt(jtp_onglets.getSelectedIndex());
+    }
+
+    private void makeTab(){
+	jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), makePanelForTab());
+	jtp_onglets.setTabComponentAt(jtp_onglets.getTabCount()-1, new ButtonTabComponent(jtp_onglets));
     }
 
     private JPanel makePanelForTab(){
