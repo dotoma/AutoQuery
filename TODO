@@ -3,7 +3,7 @@
 - possibilité d'exécuter les requêtes
   - affichage dans l'application
   - enregistrement en CSV
-- démarrage sans réseau : prendre le dernier arbre disponible ? 
+- démarrage sans réseau : proposer un arbre  parmi des arbres sauvegardés 
 - mise en majuscule automatiquement des mots-clefs
 - historique des requêtes
 - signets
