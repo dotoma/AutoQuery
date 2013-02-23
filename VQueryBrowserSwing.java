@@ -390,8 +390,10 @@ class VQueryBrowser extends JFrame implements ActionListener{
 
 	/* Crée la réprésentation graphique de la BDD */
 	dmtn_root = new DefaultMutableTreeNode("MOMACQ_V3");
-	createTree(dmtn_root, tm_arborescence_BDD);
-	jt_arborescence_BDD = new JTree(dmtn_root);
+	if (tm_arborescence_BDD != null) {
+		createTree(dmtn_root, tm_arborescence_BDD);
+		jt_arborescence_BDD = new JTree(dmtn_root);
+	} 
 
 
 
