@@ -477,6 +477,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	panel.add("Center", jeta_query);
 	return panel;
     }
+       
 
     private void createTree(DefaultMutableTreeNode top, TreeMap <String, TreeMap<String, TreeSet<String>> > tm_arbre){
 	DefaultMutableTreeNode dmtn_schema;

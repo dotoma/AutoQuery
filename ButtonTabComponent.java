@@ -22,7 +22,7 @@ public class ButtonTabComponent extends JPanel {
         setOpaque(false);
         
         //make JLabel read titles from JTabbedPane
-        JLabel label = new JLabel() {
+        final JLabel label = new JLabel() {
             public String getText() {
                 int i = pane.indexOfTabComponent(ButtonTabComponent.this);
                 if (i != -1) {
@@ -32,6 +32,54 @@ public class ButtonTabComponent extends JPanel {
             }
         };
         
+        label.addMouseListener(new MouseAdapter() 
+        { 
+            public void mouseClicked(MouseEvent e) 
+            { 
+                if (e.getClickCount() == 2) 
+                { 
+                    JTextField editor = getEditorComponent(label, label.getText()); 
+ 
+                    pane.setTabComponentAt(pane.indexOfTabComponent(ButtonTabComponent.this), editor); 
+                    editor.requestFocus(); 
+                    editor.selectAll(); 
+                    if (editor.getPreferredSize().width < 100) 
+                        editor.setPreferredSize(new Dimension(100, editor.getPreferredSize().height)); 
+                } 
+                else 
+                { 
+                    if (pane.getSelectedIndex() != pane.indexOfTabComponent(ButtonTabComponent.this)) 
+                        pane.setSelectedIndex(pane.indexOfTabComponent(ButtonTabComponent.this)); 
+                    pane.requestFocus(); 
+                } 
+            }
+    private JTextField getEditorComponent(final JLabel tabLabel, String text) 
+    { 
+        final JTextField editor = new JTextField(text); 
+        editor.addKeyListener(new KeyAdapter() 
+        { 
+            public void keyReleased(KeyEvent e) 
+            { 
+                if (e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_ESCAPE) 
+                { 
+                    tabLabel.setText(editor.getText()); 
+                    pane.setTabComponentAt(pane.indexOfTabComponent(ButtonTabComponent.this), tabLabel); 
+                } 
+            } 
+        }); 
+        editor.addFocusListener(new FocusAdapter() 
+        { 
+            public void focusLost(FocusEvent e) 
+            { 
+                tabLabel.setText(editor.getText()); 
+                pane.setTabComponentAt(pane.indexOfTabComponent(ButtonTabComponent.this), tabLabel); 
+            } 
+        }); 
+        return editor; 
+    } 
+            
+        }); 
+       
         add(label);
         //add more space between the label and the button
         label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
@@ -42,6 +90,7 @@ public class ButtonTabComponent extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
     }
 
+    
     private class TabButton extends JButton implements ActionListener {
         public TabButton() {
             int size = 17;
