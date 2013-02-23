@@ -471,7 +471,6 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	jeta_query.setMinimumSize(new Dimension(500, 300));
 
 	/** Enregistre le JEditTextArea pour pouvoir faire des opérations plus tard dessus **/
-	System.out.println("Ajout d'un JEditTextArea (dont le document est " + jeta_query.getDocument().hashCode() + ") en position " + nbTabs);
 	vector_jeta.add(nbTabs, jeta_query); 
 	
 	/** Crée le JPanel dans lequel on met les composants de chaque onglet **/

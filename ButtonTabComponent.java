@@ -15,6 +15,7 @@ public class ButtonTabComponent extends JPanel {
     public ButtonTabComponent(final JTabbedPane pane) {
         //unset default FlowLayout' gaps
         super(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        System.out.println("Réf : " + ButtonTabComponent.this.hashCode());
         if (pane == null) {
             throw new NullPointerException("TabbedPane is null");
         }
@@ -60,10 +61,10 @@ public class ButtonTabComponent extends JPanel {
         { 
             public void keyReleased(KeyEvent e) 
             { 
-                if (e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_ESCAPE) 
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) 
                 { 
-                    tabLabel.setText(editor.getText()); 
-                    pane.setTabComponentAt(pane.indexOfTabComponent(ButtonTabComponent.this), tabLabel); 
+                    pane.setTitleAt(pane.getSelectedIndex(), editor.getText()); 
+                    pane.setTabComponentAt(pane.getSelectedIndex(), ButtonTabComponent.this); 
                 } 
             } 
         }); 
@@ -72,7 +73,7 @@ public class ButtonTabComponent extends JPanel {
             public void focusLost(FocusEvent e) 
             { 
                 tabLabel.setText(editor.getText()); 
-                pane.setTabComponentAt(pane.indexOfTabComponent(ButtonTabComponent.this), tabLabel); 
+                pane.setTabComponentAt(pane.getSelectedIndex(), ButtonTabComponent.this);
             } 
         }); 
         return editor; 
