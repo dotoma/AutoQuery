@@ -8,14 +8,15 @@
 - historique des requêtes
 - signets
 - recherche de champs/tables dans l'arbre à droite
-- onglets nommés 
 - icône pour l'application 
 
 
 FAIT :
 
-- ajouter un onglet
-- supprimer un onglet
+- onglets
+  - ajouter
+  - supprimer
+  - renommer en double-cliquant dessus
 - démarrage sans connexion internet
 - complétion du plus long préfixe commun et de l'identificateur complet si qu'une possibilité
   - alias, schémas, tables
