@@ -40,7 +40,7 @@ public class SQLTokenMarker extends TokenMarker
 
 	public static KeywordMap getKeywords()
 	{
-    	    KeywordMap sqlKeywords = new KeywordMap(false);
+    	    KeywordMap sqlKeywords = new KeywordMap(true); // true -> ignore la casse
 	    sqlKeywords.add("ADD", Token.KEYWORD2);
 	    sqlKeywords.add("ALL", Token.KEYWORD2);
 	    sqlKeywords.add("ALTER", Token.KEYWORD2);
@@ -407,6 +407,7 @@ loop:
 		return token;
 	}
 
+	
 	// protected members
 	protected boolean isTSQL = false;
 

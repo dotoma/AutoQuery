@@ -4,7 +4,6 @@
   - affichage dans l'application
   - enregistrement en CSV
 - démarrage sans réseau : proposer un arbre  parmi des arbres sauvegardés 
-- mise en majuscule automatiquement des mots-clefs
 - historique des requêtes
 - signets
 - recherche de champs/tables dans l'arbre à droite
@@ -13,6 +12,7 @@
 
 FAIT :
 
+- reconnaissance des mots-clefs même si pas en majuscule
 - onglets
   - ajouter
   - supprimer
