@@ -66,8 +66,8 @@ class VQueryBrowser extends JFrame implements ActionListener{
     StatusBar status_bar;
     JPopupMenu popup;
     JTabbedPane jtp_onglets;
-    //JEditTextArea jeta_query; /* Le JEditTextArea de l'onglet affiché */
-
+    JTabbedPane jtp_droite;
+    
     public void increaseKeyTABCount(){
 	keyTABCount++;
     }
@@ -398,16 +398,24 @@ class VQueryBrowser extends JFrame implements ActionListener{
 
 
 
-
 	/* Crée la fenêtre avec ses composants */
 	JScrollPane jsp_treeView = new JScrollPane(jt_arborescence_BDD); /* Crée la hiérarchie de la BDD */
 
+	
+	/* Crée les onglets BDD, Signets, Historique */
+	jtp_droite = new JTabbedPane(SwingConstants.TOP);
+	jtp_droite.addTab("BDD", jsp_treeView);
+	JScrollPane jsp_signets = new JScrollPane();
+	jtp_droite.addTab("Signets", jsp_signets);
+	JScrollPane jsp_historique = new JScrollPane();
+	jtp_droite.addTab("Historique", jsp_historique);	
+	
 	/* Crée le composant qui accueille les onglets */
 	jtp_onglets = new JTabbedPane(SwingConstants.TOP);
 	jtp_onglets.setOpaque(true);
 
 	/* Ajoute un onglet aux composants gérant les onglets*/
-	makeTab();
+	makeTab(jtp_onglets);
 
 	/* Crée la status bar */
 	status_bar = new StatusBar();
@@ -423,7 +431,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	/* Crée le JSplitPane qui accueille les onglets à gauche et l'arbre à droite */
 	JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 	splitPane.setLeftComponent(panel_gauche);
-	splitPane.setBottomComponent(jsp_treeView);
+	splitPane.setRightComponent(jtp_droite);
 	
 
 	jsp_treeView.setMinimumSize(new Dimension(300, 500));
@@ -438,7 +446,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	menu_onglets_ajout.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
 	menu_onglets_ajout.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
-		    makeTab();
+		    makeTab(jtp_onglets);
 		}
 	    });
 	menu_onglets.add(menu_onglets_ajout);
@@ -454,9 +462,9 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	return vector_jeta.elementAt(jtp_onglets.getSelectedIndex());
     }
 
-    private void makeTab(){
-	jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), makePanelForTab());
-	jtp_onglets.setTabComponentAt(jtp_onglets.getTabCount()-1, new ButtonTabComponent(jtp_onglets));
+    private void makeTab(JTabbedPane jtp){
+	jtp.addTab("Onglet " + (jtp.getTabCount()+1), makePanelForTab());
+	jtp.setTabComponentAt(jtp.getTabCount()-1, new ButtonTabComponent(jtp));
     }
 
     private JPanel makePanelForTab(){
