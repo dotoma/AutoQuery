@@ -20,6 +20,12 @@ import java.awt.Component;
 import java.awt.BorderLayout;
 import java.util.EventObject;
 import java.util.Vector;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.JTable;
+import javax.swing.table.TableModel;
+import javax.swing.event.TableModelListener;
+import javax.swing.event.TableModelEvent;
+import java.awt.GridLayout;
 
 
 /* SQL */
@@ -28,6 +34,7 @@ import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.ResultSetMetaData;
 
 /* Arbre */
 import java.util.TreeMap;
@@ -49,11 +56,12 @@ public class VQueryBrowserSwing{
 }
 
 
-class VQueryBrowser extends JFrame implements ActionListener{
+class VQueryBrowser extends JFrame implements ActionListener, TableModelListener{
 
     /* Variables */
     private int keyTABCount = 0;
     private Vector<JEditTextArea> vector_jeta = new Vector(); /* Liste tous les JEditTextArea */ 
+    private Vector<InfosOnglet> infosOnglets = new Vector();
 
     /* Arborescence BDD */
     private JTree jt_arborescence_BDD;
@@ -67,6 +75,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
     JPopupMenu popup;
     JTabbedPane jtp_onglets;
     JTabbedPane jtp_droite;
+    QueryTableModel queryTableModel;
     
     public void increaseKeyTABCount(){
 	keyTABCount++;
@@ -365,11 +374,13 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	try {
 	    loadDriver();
 	    if (args.length == 2){
+		System.out.println("Connexion...");
 		System.out.println("Connexion lancée avec les paramètres suivants :");
 		System.out.println("Serveur : " + args[0]);
 		System.out.println("Port : " + args[1]);
 		con = newConnection(args[0], args[1]);
 	    } else {
+		System.out.println("Connexion...");
 		con = newConnection("prod-bdd-mono-master-read", "3306");
 	    }
 	    Statement st = con.createStatement();
@@ -396,8 +407,6 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	} 
 
 
-
-
 	/* Crée la fenêtre avec ses composants */
 	JScrollPane jsp_treeView = new JScrollPane(jt_arborescence_BDD); /* Crée la hiérarchie de la BDD */
 
@@ -415,7 +424,7 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	jtp_onglets.setOpaque(true);
 
 	/* Ajoute un onglet aux composants gérant les onglets*/
-	makeTab(jtp_onglets);
+	makeTab();
 
 	/* Crée la status bar */
 	status_bar = new StatusBar();
@@ -423,9 +432,16 @@ class VQueryBrowser extends JFrame implements ActionListener{
 
 	/* Crée le panel de gauche */
 	JPanel panel_gauche = new JPanel();
+	panel_gauche.setLayout(new GridLayout(3,1));
 	/** Accueil des composants **/
-	panel_gauche.add("Center", jtp_onglets);
-	panel_gauche.add("South", status_bar);
+	queryTableModel = new QueryTableModel();
+	JTable tableResultSet = new JTable( queryTableModel);
+	tableResultSet.getModel().addTableModelListener(this);
+	JScrollPane scrollPaneResultSet = new JScrollPane(tableResultSet);
+
+	panel_gauche.add(jtp_onglets);
+	panel_gauche.add(scrollPaneResultSet);
+	panel_gauche.add(status_bar);
 
 
 	/* Crée le JSplitPane qui accueille les onglets à gauche et l'arbre à droite */
@@ -441,30 +457,101 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	add(splitPane);
 
 	JMenuBar menu_bar = new JMenuBar();
+	
+	/** Menu Onglets **/
 	JMenu menu_onglets = new JMenu("Onglets");
 	JMenuItem menu_onglets_ajout = new JMenuItem("Ajouter", KeyEvent.VK_A);
 	menu_onglets_ajout.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
 	menu_onglets_ajout.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
-		    makeTab(jtp_onglets);
+		    makeTab();
 		}
 	    });
 	menu_onglets.add(menu_onglets_ajout);
 	menu_bar.add(menu_onglets);
+	
+	/** Menu Requête **/
+	JMenu menu_requete = new JMenu("Requête");
+	JMenuItem menu_requete_executer = new JMenuItem("Exécuter", KeyEvent.VK_W);
+	menu_requete_executer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
+	menu_requete_executer.addActionListener(new ActionListener(){
+		public void actionPerformed(ActionEvent e){
+		    executeRequete();
+		}
+	    });
+	menu_requete.add(menu_requete_executer);
+	menu_bar.add(menu_requete);
+	
+
 	add("North", menu_bar);
 
 	pack();
 	setVisible(true);
     }
 
-    /** Renvoie le JEditTextArea sur l'onglet sélectionné **/
-    private JEditTextArea getActiveJEditTextArea(){
-	return vector_jeta.elementAt(jtp_onglets.getSelectedIndex());
+    public void tableChanged(TableModelEvent e){
+	System.out.println("Y a eu du mouvement dans la table !");
     }
 
-    private void makeTab(JTabbedPane jtp){
-	jtp.addTab("Onglet " + (jtp.getTabCount()+1), makePanelForTab());
-	jtp.setTabComponentAt(jtp.getTabCount()-1, new ButtonTabComponent(jtp));
+    /* Charge le driver pour communiquer avec la base de données */
+    private static void loadDriver() throws ClassNotFoundException {
+	System.out.println("Chargement du pilote...");
+	Class.forName("com.mysql.jdbc.Driver");
+	System.out.println("Pilote chargé...");
+    }
+    
+    /* Obtient une connexion avec le moteur de gestion de BDD */
+    private static Connection newConnection(String host, String port) throws SQLException {
+	final String url = "jdbc:mysql://" + host + ":" + port;
+	Connection con = DriverManager.getConnection(url, "MAD_exp", "altUnsyint");
+	return con;
+    }
+
+    /* Ouvre une connexion vers le serveur lié à un onglet */
+    private Connection newConnectionFromTab(int currentTab) throws SQLException{
+	return newConnection(infosOnglets.elementAt(currentTab).getHost(), infosOnglets.elementAt(currentTab).getPort());
+    }
+    
+    /* Ouvre une connexion vers le serveur lié à l'onglet sélectionné */
+    private Connection newConnectionFromCurrentTab() throws SQLException{
+	return newConnectionFromTab(jtp_onglets.getSelectedIndex());
+    }
+
+    private void executeRequete(){
+	System.out.println("Exécution de la requête...");
+	Connection con = null;
+	try{
+	    con = newConnectionFromCurrentTab();
+	    String query = getActiveJEditTextArea().getText();
+	    System.out.println("Requête exécutée : " + query);
+	    queryTableModel.runQuery(con, query); // Le modèle de données contient toutes les données à afficher dans une JTable
+	    
+	    
+	}  catch (Exception e){
+	    System.err.println("Exception lors de la connexion : " + e.getMessage());
+	} finally {
+	    try {
+		if (con != null){
+		    System.out.println("Fermeture de la connexion à la BDD");
+		    con.close();
+		}
+	    } catch (SQLException e) {}
+	}
+
+	System.out.println("Le résultat contient " + queryTableModel.getRowCount() + " lignes et " + queryTableModel.getColumnCount() + " colonnes.");
+
+    }
+
+    /** Renvoie le JEditTextArea sur l'onglet sélectionné **/
+    private JEditTextArea getActiveJEditTextArea(){
+	return infosOnglets.elementAt(jtp_onglets.getSelectedIndex()).getJETA();
+    }
+
+
+    private void makeTab(){
+	infosOnglets.add(jtp_onglets.getTabCount(), new InfosOnglet("prod-bdd-mono-master-read", "3306"));
+	jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), makePanelForTab());
+	jtp_onglets.setTabComponentAt(jtp_onglets.getTabCount()-1, new ButtonTabComponent(jtp_onglets, this));
     }
 
     private JPanel makePanelForTab(){
@@ -479,7 +566,8 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	jeta_query.setMinimumSize(new Dimension(500, 300));
 
 	/** Enregistre le JEditTextArea pour pouvoir faire des opérations plus tard dessus **/
-	vector_jeta.add(nbTabs, jeta_query); 
+	infosOnglets.elementAt(nbTabs).setJETA(jeta_query);
+
 	
 	/** Crée le JPanel dans lequel on met les composants de chaque onglet **/
 	JPanel panel = new JPanel(new BorderLayout());
@@ -487,6 +575,10 @@ class VQueryBrowser extends JFrame implements ActionListener{
 	return panel;
     }
        
+    public void deleteTab(int tab){
+	jtp_onglets.remove(tab);
+	infosOnglets.remove(tab);
+    }
 
     private void createTree(DefaultMutableTreeNode top, TreeMap <String, TreeMap<String, TreeSet<String>> > tm_arbre){
 	DefaultMutableTreeNode dmtn_schema;
@@ -515,17 +607,6 @@ class VQueryBrowser extends JFrame implements ActionListener{
 
 
 
-    /* Charge le driver pour communiquer avec la base de données */
-    private static void loadDriver() throws ClassNotFoundException {
-	Class.forName("com.mysql.jdbc.Driver");
-    }
-    
-    /* Obtient une connexion avec le moteur de gestion de BDD */
-    private static Connection newConnection(String host, String port) throws SQLException {
-	final String url = "jdbc:mysql://" + host + ":" + port;
-	Connection con = DriverManager.getConnection(url, "MAD_exp", "altUnsyint");
-	return con;
-    }
 
     /* Crée l'arbre pour la complétion */
     private static TreeMap makeTree(ResultSet rs) throws SQLException{
@@ -618,4 +699,99 @@ class StatusBar extends JPanel
 	{
 		info.setText(status);
 	}
+}
+
+
+/** À chaque onglet on attache différentes informations **/
+class InfosOnglet {
+    String host; /* Serveur auquel se connecter pour exécuter la requête*/
+    String port; /* Le port sur le serveur */
+    JEditTextArea jeta; /* Quel est le JEditTextArea contenant la requête à exécuter */
+
+    public InfosOnglet(String host, String port){
+	this.host = host;
+	this.port = port;
+    }
+
+    public void setJETA(JEditTextArea jeta){
+	this.jeta = jeta; 
+    }
+    
+    public JEditTextArea getJETA(){
+	return jeta;
+    }
+
+    public String getHost(){
+	return host;
+    }
+
+    public String getPort(){
+	return port;
+    }
+}
+
+
+class QueryTableModel extends AbstractTableModel {
+    Vector cache; // will hold String[] objects . . .
+    int colCount;
+    String[] headers;
+    
+    public QueryTableModel(){
+	cache = new Vector();
+    }
+
+    public String getColumnName(int i) {
+	return headers[i];
+    }
+
+    public int getColumnCount() {
+	return colCount;
+    }
+
+    public int getRowCount() {
+	return cache.size();
+    }
+    
+    public Object getValueAt(int row, int col) {
+	return ((String[])cache.elementAt(row))[col];
+    }
+
+  // All the real work happens here; in a real application,
+  // we'd probably perform the query in a separate thread.
+    public void runQuery(Connection con, String query) {
+	cache = new Vector();
+	try {
+	    Statement st = con.createStatement();
+	    ResultSet rs = st.executeQuery(query);
+	    ResultSetMetaData meta = rs.getMetaData();
+	    colCount = meta.getColumnCount();
+
+	    // Now we must rebuild the headers array with the new column names
+	    headers = new String[colCount];
+
+	    for (int h = 1; h <= colCount; h++) {
+		headers[h - 1] = meta.getColumnName(h);
+	    }
+
+	    while (rs.next()) {
+		String[] record = new String[colCount];
+		for (int i = 0; i < colCount; i++) {
+		    record[i] = rs.getString(i + 1);
+		}
+		cache.addElement(record);
+	    }
+	    fireTableChanged(null);
+	} catch (Exception e){
+	    cache = new Vector(); // blank it out and keep going.
+	    e.printStackTrace();
+	    System.err.println("Exception lors de l'exécution de la requête : " + e.getMessage());
+	} finally {
+	    try {
+		if (con != null){
+		    System.out.println("Fermeture de la connexion à la BDD");
+		    con.close();
+		}
+	    } catch (SQLException e) {}
+	}
+    }
 }

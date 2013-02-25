@@ -11,8 +11,9 @@ import java.awt.event.*;
  */ 
 public class ButtonTabComponent extends JPanel {
     private final JTabbedPane pane;
+    private final VQueryBrowser app;
 
-    public ButtonTabComponent(final JTabbedPane pane) {
+    public ButtonTabComponent(final JTabbedPane pane, final VQueryBrowser app) {
         //unset default FlowLayout' gaps
         super(new FlowLayout(FlowLayout.LEFT, 0, 0));
         System.out.println("Réf : " + ButtonTabComponent.this.hashCode());
@@ -21,7 +22,8 @@ public class ButtonTabComponent extends JPanel {
         }
         this.pane = pane;
         setOpaque(false);
-        
+	this.app = app;
+
         //make JLabel read titles from JTabbedPane
         final JLabel label = new JLabel() {
             public String getText() {
@@ -116,7 +118,7 @@ public class ButtonTabComponent extends JPanel {
         public void actionPerformed(ActionEvent e) {
             int i = pane.indexOfTabComponent(ButtonTabComponent.this);
             if (i != -1) {
-                pane.remove(i);
+		app.deleteTab(i);
             }
         }
 
