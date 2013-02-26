@@ -430,9 +430,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	status_bar = new StatusBar();
 
 
-	/* Crée le panel de gauche */
-	JPanel panel_gauche = new JPanel();
-	panel_gauche.setLayout(new GridLayout(3,1));
+	/* Crée la partie de gauche */
 	/** Accueil des composants **/
 	queryTableModel = new QueryTableModel();
 	JTable tableResultSet = new JTable( queryTableModel);
@@ -443,22 +441,29 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	tca.adjustColumns();
 	JScrollPane scrollPaneResultSet = new JScrollPane(tableResultSet);
 
-	panel_gauche.add(jtp_onglets);
-	panel_gauche.add(scrollPaneResultSet);
-	panel_gauche.add(status_bar);
+	JPanel panel_bas = new JPanel();
+	panel_bas.setLayout(new BorderLayout());
+	panel_bas.add(scrollPaneResultSet, BorderLayout.CENTER);
+	panel_bas.add(status_bar, BorderLayout.SOUTH);
+
+
+
+	JSplitPane jsp_gauche = new JSplitPane(JSplitPane.VERTICAL_SPLIT, 
+					       jtp_onglets,
+					       panel_bas);
 
 
 	/* Crée le JSplitPane qui accueille les onglets à gauche et l'arbre à droite */
-	JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-	splitPane.setLeftComponent(panel_gauche);
-	splitPane.setRightComponent(jtp_droite);
+	JSplitPane splitPaneGaucheDroite = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+	splitPaneGaucheDroite.setLeftComponent(jsp_gauche);
+	splitPaneGaucheDroite.setRightComponent(jtp_droite);
 	
 
-	jsp_treeView.setMinimumSize(new Dimension(300, 500));
-	splitPane.setDividerLocation(670); 
-	splitPane.setPreferredSize(new Dimension(1000, 500));
+	jtp_droite.setPreferredSize(new Dimension(400, 500));
+	splitPaneGaucheDroite.setDividerLocation(600); 
+	splitPaneGaucheDroite.setPreferredSize(new Dimension(1000, 500));
 
-	add(splitPane);
+	add(splitPaneGaucheDroite);
 
 	JMenuBar menu_bar = new JMenuBar();
 	
@@ -567,7 +572,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	jeta_query.setFocusTraversalKeysEnabled(false);
 	jeta_query.setEditable(true);
 	jeta_query.setTokenMarker(new SQLTokenMarker());
-	jeta_query.setMinimumSize(new Dimension(500, 300));
+	jeta_query.setMinimumSize(new Dimension(300, 150));
 
 	/** Enregistre le JEditTextArea pour pouvoir faire des opérations plus tard dessus **/
 	infosOnglets.elementAt(nbTabs).setJETA(jeta_query);

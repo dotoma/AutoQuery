@@ -11,13 +11,21 @@
 - signets
 - recherche de champs/tables dans l'arbre à droite
 - icône pour l'application 
-- mettre le JTable dans un JSplitPane horizontal
-
+- menu contextuel sur les éléments de l'arbre :
+   - CREATE STATEMENT
+   - date de mise à jour
+   - nombre de lignes
+- refresh automatique sur les requêtes des onglets (toutes les x minutes)
+- menu contextuel sur colonne résultat :
+   - afficher la table correspondante : ID_REF_TABLE -> affiche REF_TABLE
 
 FAIT :
 
+- mettre le JTable dans un JSplitPane horizontal
 - possibilité d'exécuter les requêtes
   - affichage dans l'application
+  - tri des colonnes
+  - ajustement de la taille des colonnes
 - reconnaissance des mots-clefs même si pas en majuscule
 - onglets
   - ajouter
