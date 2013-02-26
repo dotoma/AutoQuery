@@ -22,6 +22,9 @@ import java.util.EventObject;
 import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.JTable;
+import javax.swing.JList;
+import javax.swing.DefaultListModel;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.TableModel;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TableModelEvent;
@@ -60,7 +63,6 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 
     /* Variables */
     private int keyTABCount = 0;
-    private Vector<JEditTextArea> vector_jeta = new Vector(); /* Liste tous les JEditTextArea */ 
     private Vector<InfosOnglet> infosOnglets = new Vector();
 
     /* Arborescence BDD */
@@ -76,6 +78,9 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
     JTabbedPane jtp_onglets;
     JTabbedPane jtp_droite;
     QueryTableModel queryTableModel;
+    DefaultListModel lm_historique;
+    JButton jb_historique;
+    final JList jlist_historique;
     
     public void increaseKeyTABCount(){
 	keyTABCount++;
@@ -416,8 +421,26 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	jtp_droite.addTab("BDD", jsp_treeView);
 	JScrollPane jsp_signets = new JScrollPane();
 	jtp_droite.addTab("Signets", jsp_signets);
-	JScrollPane jsp_historique = new JScrollPane();
-	jtp_droite.addTab("Historique", jsp_historique);	
+	
+	/* Onglet HISTORIQUE */
+	lm_historique = new DefaultListModel();
+	jlist_historique = new JList(lm_historique);
+	jlist_historique.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	JPanel jp_historique = new JPanel(new BorderLayout());
+	jb_historique = new JButton("Créer onglet avec cette requête");
+	jb_historique.setEnabled(false);
+	jb_historique.addActionListener(new ActionListener(){
+		public void actionPerformed(ActionEvent e){
+		    String requete = (String) jlist_historique.getSelectedValue();
+		    System.out.println("Requête sélectionnée : " + (String) jlist_historique.getSelectedValue());
+		    if (!requete.isEmpty()){
+			VQueryBrowser.this.makeTabFromQuery(requete);
+		    }
+		}
+	    });
+	jp_historique.add(jb_historique, BorderLayout.NORTH);
+	jp_historique.add(jlist_historique, BorderLayout.CENTER);
+	jtp_droite.addTab("Historique", jp_historique);	
 	
 	/* Crée le composant qui accueille les onglets */
 	jtp_onglets = new JTabbedPane(SwingConstants.TOP);
@@ -485,6 +508,10 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	menu_requete_executer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
 	menu_requete_executer.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
+		    lm_historique.addElement(getActiveJEditTextArea().getText());
+		    if (!jb_historique.isEnabled()){
+			jb_historique.setEnabled(true);
+		    }
 		    executeRequete();
 		}
 	    });
@@ -557,10 +584,18 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
     }
 
 
-    private void makeTab(){
+    /* Crée un onglet dans le composant gérant les requêtes. 
+       Renvoie l'index de l'onglet créé. */
+    private int makeTab(){
 	infosOnglets.add(jtp_onglets.getTabCount(), new InfosOnglet("prod-bdd-mono-master-read", "3306"));
 	jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), makePanelForTab());
 	jtp_onglets.setTabComponentAt(jtp_onglets.getTabCount()-1, new ButtonTabComponent(jtp_onglets, this));
+	return jtp_onglets.getTabCount()-1;
+    }
+
+    private void makeTabFromQuery(String query){
+	int onglet = makeTab();
+	infosOnglets.elementAt(onglet).getJETA().setText(query);	
     }
 
     private JPanel makePanelForTab(){

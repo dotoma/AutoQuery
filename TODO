@@ -7,7 +7,6 @@
       - le temps de récupération et 
       - le temps de mise en forme par le QueryTableModel
 - démarrage sans réseau : proposer un arbre  parmi des arbres sauvegardés 
-- historique des requêtes
 - signets
 - recherche de champs/tables dans l'arbre à droite
 - icône pour l'application 
@@ -21,6 +20,7 @@
 
 FAIT :
 
+- historique des requêtes
 - mettre le JTable dans un JSplitPane horizontal
 - possibilité d'exécuter les requêtes
   - affichage dans l'application
