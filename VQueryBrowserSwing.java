@@ -436,7 +436,11 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	/** Accueil des composants **/
 	queryTableModel = new QueryTableModel();
 	JTable tableResultSet = new JTable( queryTableModel);
+	tableResultSet.setAutoCreateRowSorter(true);
 	tableResultSet.getModel().addTableModelListener(this);
+	tableResultSet.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+	TableColumnAdjuster tca = new TableColumnAdjuster(tableResultSet);
+	tca.adjustColumns();
 	JScrollPane scrollPaneResultSet = new JScrollPane(tableResultSet);
 
 	panel_gauche.add(jtp_onglets);
