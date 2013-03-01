@@ -29,7 +29,8 @@ import javax.swing.table.TableModel;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TableModelEvent;
 import java.awt.GridLayout;
-
+import javax.swing.SwingWorker;
+import java.util.List;
 
 /* SQL */
 import java.sql.ResultSet;
@@ -50,6 +51,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 
 public class VQueryBrowserSwing{
@@ -59,6 +62,12 @@ public class VQueryBrowserSwing{
 }
 
 
+/**
+ * Describe class <code>VQueryBrowser</code> here.
+ *
+ * @author <a href="mailto:mad@portable-MAD">Marc Autord</a>
+ * @version 1.0
+ */
 class VQueryBrowser extends JFrame implements ActionListener, TableModelListener{
 
     /* Variables */
@@ -77,10 +86,10 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
     JPopupMenu popup;
     JTabbedPane jtp_onglets;
     JTabbedPane jtp_droite;
-    QueryTableModel queryTableModel;
     DefaultListModel lm_historique;
     JButton jb_historique;
     final JList jlist_historique;
+    JScrollPane scrollPaneResultSet;
     
     public void increaseKeyTABCount(){
 	keyTABCount++;
@@ -303,7 +312,8 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
     private String complete(SortedSet ss, String s_pref){
 	Object[] sa_suff = filterPrefix(ss, s_pref).toArray();	
 	int nb_comp = sa_suff.length; // nombre de complétion(s) possible(s)
-	status_bar.showStatus(nb_comp + " complétion(s) possible(s)");
+	status_bar.showStatus(jtp_onglets.getTitleAt(jtp_onglets.getSelectedIndex()), 
+			      nb_comp + " complétion(s) possible(s)");
 	if (nb_comp == 1){
 	    return ((String) sa_suff[0]);
 	} else if (nb_comp > 1){
@@ -455,15 +465,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 
 	/* Crée la partie de gauche */
 	/** Accueil des composants **/
-	queryTableModel = new QueryTableModel();
-	JTable tableResultSet = new JTable( queryTableModel);
-	tableResultSet.setAutoCreateRowSorter(true);
-	tableResultSet.getModel().addTableModelListener(this);
-	tableResultSet.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-	TableColumnAdjuster tca = new TableColumnAdjuster(tableResultSet);
-	tca.adjustColumns();
-	JScrollPane scrollPaneResultSet = new JScrollPane(tableResultSet);
-
+	scrollPaneResultSet = new JScrollPane(infosOnglets.elementAt(0).getTable());
 	JPanel panel_bas = new JPanel();
 	panel_bas.setLayout(new BorderLayout());
 	panel_bas.add(scrollPaneResultSet, BorderLayout.CENTER);
@@ -488,6 +490,18 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 
 	add(splitPaneGaucheDroite);
 
+
+	/* Lorsqu'il y a changement du JTabbedPane (notamment lorsqu'on change d'onglet)*/
+	jtp_onglets.addChangeListener(new ChangeListener()
+	    {
+		public void stateChanged(ChangeEvent e){
+		    int index = jtp_onglets.getSelectedIndex();
+		    InfosOnglet infos = infosOnglets.elementAt(index);
+		    setActiveTable(infos.getTable());
+		}
+	    });
+
+	
 	JMenuBar menu_bar = new JMenuBar();
 	
 	/** Menu Onglets **/
@@ -525,6 +539,8 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	setVisible(true);
     }
 
+
+
     public void tableChanged(TableModelEvent e){
 	System.out.println("Y a eu du mouvement dans la table !");
     }
@@ -560,21 +576,14 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	    con = newConnectionFromCurrentTab();
 	    String query = getActiveJEditTextArea().getText();
 	    System.out.println("Requête exécutée : " + query);
-	    queryTableModel.runQuery(con, query); // Le modèle de données contient toutes les données à afficher dans une JTable
+	    getActiveQueryTableModel().runQuery(con, query); // Le modèle de données contient toutes les données à afficher dans une JTable
 	    
 	    
 	}  catch (Exception e){
 	    System.err.println("Exception lors de la connexion : " + e.getMessage());
-	} finally {
-	    try {
-		if (con != null){
-		    System.out.println("Fermeture de la connexion à la BDD");
-		    con.close();
-		}
-	    } catch (SQLException e) {}
 	}
 
-	System.out.println("Le résultat contient " + queryTableModel.getRowCount() + " lignes et " + queryTableModel.getColumnCount() + " colonnes.");
+
 
     }
 
@@ -583,13 +592,48 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	return infosOnglets.elementAt(jtp_onglets.getSelectedIndex()).getJETA();
     }
 
+    private void setActiveTable(JTable newJTable){
+    	scrollPaneResultSet.setViewportView(newJTable);
+    }
+
+
+
+    /** Renvoie le QueryTableModel correspondant à l'onglet sélectionné **/
+    private QueryTableModel getActiveQueryTableModel(){
+	return infosOnglets.elementAt(jtp_onglets.getSelectedIndex()).getModele();
+    }
+
+    public JTabbedPane getQueryTabs() {
+	return jtp_onglets;
+    }
+
+
+    /* Crée de quoi accueillir les résultats de requêtes :
+     JTable, QueryTableModel */
+    private void makeComponentsForResultSet(int onglet){
+	infosOnglets.elementAt(onglet).setModele(new QueryTableModel(infosOnglets.elementAt(onglet)));
+	JTable table = new JTable( infosOnglets.elementAt(onglet).getModele());
+	infosOnglets.elementAt(onglet).setTable(table);
+	table.setAutoCreateRowSorter(true);
+	table.getModel().addTableModelListener(this);
+	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+	TableColumnAdjuster tca = new TableColumnAdjuster(table);
+	tca.adjustColumns();
+    }
 
     /* Crée un onglet dans le composant gérant les requêtes. 
        Renvoie l'index de l'onglet créé. */
     private int makeTab(){
-	infosOnglets.add(jtp_onglets.getTabCount(), new InfosOnglet("prod-bdd-mono-master-read", "3306"));
+	// Le composant est null car il n'est pas encore créé. On l'ajoute un peu plus loin.
+	infosOnglets.add(jtp_onglets.getTabCount(), new InfosOnglet(this, null, "prod-bdd-mono-master-read", "3306"));
 	jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), makePanelForTab());
-	jtp_onglets.setTabComponentAt(jtp_onglets.getTabCount()-1, new ButtonTabComponent(jtp_onglets, this));
+	ButtonTabComponent btc = null;
+	jtp_onglets.setTabComponentAt(jtp_onglets.getTabCount()-1, btc = new ButtonTabComponent(jtp_onglets, this));
+	infosOnglets.elementAt(jtp_onglets.getTabCount()-1).setTab(btc);
+
+
+	/* De quoi accueillir le résultat de la requête qui sera exécutée dans ce nouvel onglet */
+	makeComponentsForResultSet(jtp_onglets.getTabCount()-1);
 	return jtp_onglets.getTabCount()-1;
     }
 
@@ -610,6 +654,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	jeta_query.setMinimumSize(new Dimension(300, 150));
 
 	/** Enregistre le JEditTextArea pour pouvoir faire des opérations plus tard dessus **/
+	/* Pas nécessaire de faire nbTabs - 1 puisque l'onglet dont on stocke les infos n'est pas encore créé*/
 	infosOnglets.elementAt(nbTabs).setJETA(jeta_query);
 
 	
@@ -622,6 +667,10 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
     public void deleteTab(int tab){
 	jtp_onglets.remove(tab);
 	infosOnglets.remove(tab);
+    }
+
+    public Vector<InfosOnglet> getInfosOnglets(){
+	return infosOnglets;
     }
 
     private void createTree(DefaultMutableTreeNode top, TreeMap <String, TreeMap<String, TreeSet<String>> > tm_arbre){
@@ -704,6 +753,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	
     }
 
+    /* Lors d'un choix dans le menu contextuel de complétion */
     public final void actionPerformed(final ActionEvent e) {
 	JEditTextArea jeta_query = getActiveJEditTextArea();
 	// Dans le cas d'un clic ou ENTER dans le menu contextuel :
@@ -719,10 +769,23 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	popup = null;
     }
 
+    public void showStatus(String message){
+	status_bar.showStatus(message);
+    }
+
+    public void showStatus(String from, String message){
+	status_bar.showStatus(from, message);
+    }
+
 
 }
 
-
+/**
+ * Describe class <code>StatusBar</code> here.
+ *
+ * @author <a href="mailto:mad@portable-MAD">Marc Autord</a>
+ * @version 1.0
+ */
 class StatusBar extends JPanel
 {
 	private JLabel info;
@@ -743,19 +806,112 @@ class StatusBar extends JPanel
 	{
 		info.setText(status);
 	}
+
+    public void showStatus(String from, String status) {
+	showStatus(from + " : " + status);
+    }
+
 }
 
 
 /** À chaque onglet on attache différentes informations **/
 class InfosOnglet {
+
+    private QueryTableModel modele;
+    private JTable table;
+    private VQueryBrowser app;
+
+    /**
+     * Le composant dans l'onglet sert de pointeur vers l'onglet
+     */
+    private Component tab;
     String host; /* Serveur auquel se connecter pour exécuter la requête*/
     String port; /* Le port sur le serveur */
     JEditTextArea jeta; /* Quel est le JEditTextArea contenant la requête à exécuter */
 
-    public InfosOnglet(String host, String port){
+    /**
+     * Get the <code>Tab</code> value.
+     *
+     * @return a <code>Component</code> value
+     */
+    public final Component getTab() {
+	return tab;
+    }
+
+    /**
+     * Set the <code>Tab</code> value.
+     *
+     * @param newTab The new Tab value.
+     */
+    public final void setTab(final Component newTab) {
+	this.tab = newTab;
+    }
+
+
+    /**
+     * Get the <code>App</code> value.
+     *
+     * @return a <code>VQueryBrowser</code> value
+     */
+    public final VQueryBrowser getApp() {
+	return app;
+    }
+
+    /**
+     * Set the <code>App</code> value.
+     *
+     * @param newApp The new App value.
+     */
+    public final void setApp(final VQueryBrowser newApp) {
+	this.app = newApp;
+    }
+    public InfosOnglet(VQueryBrowser app, Component tab, String host, String port) {
+	this.app = app;
+	this.tab = tab;
 	this.host = host;
 	this.port = port;
     }
+
+    public String getTabTitle(){
+	System.out.println("Onglet d'indice " + app.getQueryTabs().indexOfTabComponent(tab));
+	return app.getQueryTabs().getTitleAt(app.getQueryTabs().indexOfTabComponent(tab));
+    }
+
+    /**
+     * Get the <code>Table</code> value.
+     *
+     * @return a <code>JTable</code> value
+     */
+    public final JTable getTable() {
+	return table;
+    }
+
+    /**
+     * Set the <code>Table</code> value.
+     *
+     * @param newTable The new Table value.
+     */
+    public final void setTable(final JTable newTable) {
+	this.table = newTable;
+    }
+    /**
+     * Get the <code>Modele</code> value.
+     *
+     * @return a <code>QueryTableModel</code> value
+     */
+    public final QueryTableModel getModele() {
+	return modele;
+    }
+
+    /**
+     * Set the <code>Modele</code> value.
+     *
+     * @param newModele The new Modele value.
+     */
+    public final void setModele(final QueryTableModel newModele) {
+	this.modele = newModele;
+    }
+
 
     public void setJETA(JEditTextArea jeta){
 	this.jeta = jeta; 
@@ -764,6 +920,8 @@ class InfosOnglet {
     public JEditTextArea getJETA(){
 	return jeta;
     }
+
+
 
     public String getHost(){
 	return host;
@@ -775,12 +933,16 @@ class InfosOnglet {
 }
 
 
+
 class QueryTableModel extends AbstractTableModel {
+    InfosOnglet infosOnglet;
     Vector cache; // will hold String[] objects . . .
     int colCount;
     String[] headers;
+
     
-    public QueryTableModel(){
+    public QueryTableModel(InfosOnglet infos){
+	this.infosOnglet = infos;
 	cache = new Vector();
     }
 
@@ -790,6 +952,18 @@ class QueryTableModel extends AbstractTableModel {
 
     public int getColumnCount() {
 	return colCount;
+    }
+
+    public void setColCount(int col){
+	colCount = col;
+    }
+
+    public void setHeaders(String[] headers){
+	this.headers = headers;
+    }
+
+    public void setHeader(int i, String s){
+	this.headers[i] = s;
     }
 
     public int getRowCount() {
@@ -802,40 +976,83 @@ class QueryTableModel extends AbstractTableModel {
 
   // All the real work happens here; in a real application,
   // we'd probably perform the query in a separate thread.
-    public void runQuery(Connection con, String query) {
+    public void runQuery(final Connection con, final String query) {
 	cache = new Vector();
 	try {
-	    Statement st = con.createStatement();
-	    ResultSet rs = st.executeQuery(query);
-	    ResultSetMetaData meta = rs.getMetaData();
-	    colCount = meta.getColumnCount();
+	    SwingWorker worker = new SwingWorker <Void, Integer>(){
 
-	    // Now we must rebuild the headers array with the new column names
-	    headers = new String[colCount];
-
-	    for (int h = 1; h <= colCount; h++) {
-		headers[h - 1] = meta.getColumnName(h);
-	    }
-
-	    while (rs.next()) {
-		String[] record = new String[colCount];
-		for (int i = 0; i < colCount; i++) {
-		    record[i] = rs.getString(i + 1);
+		@Override
+		protected void process(List<Integer> chunks){
+		    int dernier_element = chunks.get(chunks.size() -1).intValue();
+		    if ( dernier_element % 10 == 0){
+			infosOnglet.getApp().showStatus(infosOnglet.getTabTitle(), 
+							"Traitement local : " + dernier_element + " %");
+		    }
 		}
-		cache.addElement(record);
-	    }
-	    fireTableChanged(null);
+
+		@Override
+		public Void doInBackground() throws SQLException{
+		    try{
+			Statement st = con.createStatement();
+
+			System.out.println("Avant requête");			
+			ResultSet rs = st.executeQuery(query);
+			System.out.println("Après requête");
+			ResultSetMetaData meta = rs.getMetaData();
+			setColCount(meta.getColumnCount());
+			// Now we must rebuild the headers array with the new column names
+			setHeaders(new String[colCount]);
+			for (int h = 1; h <= colCount; h++) {
+			    setHeader(h - 1, meta.getColumnName(h));
+			}
+
+			rs.last();
+			int nlignes = rs.getRow();
+			rs.first();
+			int ligne = 0;
+
+			while (rs.next()) {
+			    int colCount = getColumnCount();
+			    String[] record = new String[colCount];
+			    for (int i = 0; i < colCount; i++) {
+				record[i] = rs.getString(i + 1);
+			    }
+			    cache.addElement(record);
+			    publish(new Integer(100 * ++ligne / nlignes));
+			}
+
+		    } catch (SQLException e) {
+		    } catch (Exception e){
+			System.out.println("Exception dans le worker !");
+			System.out.println("Message de l'exception : " + e.getMessage());
+			
+		    } finally {
+			if (con != null){
+			    System.out.println("runQuery : Fermeture de la connexion à la BDD");
+			    con.close();
+			}
+		    }
+
+		    return null;
+
+		}
+
+		@Override
+		public void done(){
+		    System.out.println("Le résultat contient " + getRowCount() + " lignes et " + getColumnCount() + " colonnes.");
+		    infosOnglet.getApp().showStatus(infosOnglet.getTabTitle(),
+						    "Traitement local effectué");
+		    fireTableChanged(null);
+		}
+	    };
+
+
+
+	    worker.execute();
 	} catch (Exception e){
 	    cache = new Vector(); // blank it out and keep going.
 	    e.printStackTrace();
 	    System.err.println("Exception lors de l'exécution de la requête : " + e.getMessage());
-	} finally {
-	    try {
-		if (con != null){
-		    System.out.println("Fermeture de la connexion à la BDD");
-		    con.close();
-		}
-	    } catch (SQLException e) {}
-	}
+   	}
     }
 }

@@ -2,6 +2,7 @@
 
 - possibilité d'exécuter les requêtes
   - enregistrement en CSV
+  - enregistrement pour Excel
   - affichage du temps d'exécution pendant l'exécution
   - distinction dans l'affichage entre 
       - le temps de récupération et 
@@ -17,15 +18,25 @@
 - refresh automatique sur les requêtes des onglets (toutes les x minutes)
 - menu contextuel sur colonne résultat :
    - afficher la table correspondante : ID_REF_TABLE -> affiche REF_TABLE
+- réparer le menu contextuel de complétion
+- connexion
+   - fenêtre
+   - gestionnaire de profils
 
 FAIT :
 
+- la status bar affiche l'onglet qui parle : "Émetteur : message"
+- un JTable par JETA
+   - création d'un JTable et d'un QueryTableModel pour chaque JETA
+   - faire en sorte que cliquer sur un onglet associe le JETA et la JTable
 - historique des requêtes
 - mettre le JTable dans un JSplitPane horizontal
 - possibilité d'exécuter les requêtes
   - affichage dans l'application
   - tri des colonnes
   - ajustement de la taille des colonnes
+  - exécution dans un autre thread pour ne pas niquer l'affichage
+  - jauge de progression en pourcents du traitement des données en local avant affichage
 - reconnaissance des mots-clefs même si pas en majuscule
 - onglets
   - ajouter
