@@ -31,6 +31,10 @@ import javax.swing.event.TableModelEvent;
 import java.awt.GridLayout;
 import javax.swing.SwingWorker;
 import java.util.List;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
+import javax.swing.tree.TreePath;
 
 /* SQL */
 import java.sql.ResultSet;
@@ -419,7 +423,29 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	if (tm_arborescence_BDD != null) {
 		createTree(dmtn_root, tm_arborescence_BDD);
 		jt_arborescence_BDD = new JTree(dmtn_root);
+
+		MouseListener ml = new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+			    TreePath selPath = jt_arborescence_BDD.getPathForLocation(e.getX(), e.getY());
+			    int type = selPath.getPathCount();
+			    switch (type){
+			    case 2: 
+				System.out.println("Vous avez sélectionné un schéma.");
+			        break;
+			    case 3: 
+				System.out.println("Vous avez sélectionné une table.");
+			        break;
+			    case 4: 
+				System.out.println("Vous avez sélectionné un champ.");
+			        break;
+			    }
+			}
+		    };
+		jt_arborescence_BDD.addMouseListener(ml);
 	} 
+
+
+
 
 
 	/* Crée la fenêtre avec ses composants */
