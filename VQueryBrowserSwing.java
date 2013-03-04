@@ -1008,7 +1008,7 @@ class QueryTableModel extends AbstractTableModel {
 
 			rs.last();
 			int nlignes = rs.getRow();
-			rs.first();
+			rs.beforeFirst();
 			int ligne = 0;
 
 			while (rs.next()) {
