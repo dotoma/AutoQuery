@@ -78,6 +78,10 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
     /* Variables */
     private int keyTABCount = 0;
     private Vector<InfosOnglet> infosOnglets = new Vector();
+    private String host; /* Serveur auquel se connecter pour exécuter la requête*/
+    private String port; /* Le port sur le serveur */
+    private String username; /* Le user pour se connecter */
+    private String password; /* Le mot de passe pour se connecter */
 
     /* Arborescence BDD */
     private JTree jt_arborescence_BDD;
@@ -388,7 +392,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	try {
 	    loadDriver();
 	    System.out.println("Connexion...");
-	    con = newConnection("prod-bdd-mono-master-read", "3306");
+	    con = newConnection();
 	    st = con.createStatement();
 	    rs = st.executeQuery(query);
 	    			
@@ -418,7 +422,21 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	
-
+	
+	LoginDialog loginDialog = new LoginDialog(this);
+	loginDialog.setVisible(true);
+	
+	/* Test que les identifiants sont les bons */
+	if (!loginDialog.loginSucceeded()){
+		System.exit(0);
+	}
+	
+	/* Chargement des paramètres */
+	host = loginDialog.getHost();
+	port = loginDialog.getPort();
+	username = loginDialog.getUsername();
+	password = loginDialog.getPassword();
+	
 	/* Sauvegarde des alias */
 	tm_alias = new TreeMap();
 
@@ -427,16 +445,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	Connection con = null;
 	try {
 	    loadDriver();
-	    if (args.length == 2){
-		System.out.println("Connexion...");
-		System.out.println("Connexion lancée avec les paramètres suivants :");
-		System.out.println("Serveur : " + args[0]);
-		System.out.println("Port : " + args[1]);
-		con = newConnection(args[0], args[1]);
-	    } else {
-		System.out.println("Connexion...");
-		con = newConnection("prod-bdd-mono-master-read", "3306");
-	    }
+	    con = newConnection();
 	    Statement st = con.createStatement();
 	    String query = "SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION";
 	    ResultSet rs = st.executeQuery(query);
@@ -561,7 +570,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	jtp_onglets = new JTabbedPane(SwingConstants.TOP);
 	jtp_onglets.setOpaque(true);
 
-	/* Ajoute un onglet aux composants gérant les onglets*/
+	/* Ajoute un onglet aux composants gérant les onglets en lui passant les paramètres de connexion */
 	makeTab();
 
 	/* Crée la status bar */
@@ -658,15 +667,16 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
     }
     
     /* Obtient une connexion avec le moteur de gestion de BDD */
-    private static Connection newConnection(String host, String port) throws SQLException {
+    private Connection newConnection() throws SQLException {
 	final String url = "jdbc:mysql://" + host + ":" + port;
-	Connection con = DriverManager.getConnection(url, "MAD_exp", "altUnsyint");
+	Connection con = DriverManager.getConnection(url, username, password);
 	return con;
     }
 
     /* Ouvre une connexion vers le serveur lié à un onglet */
+    /* Pour l'instant chaque onglet possède les mêmes paramètres de connexion */
     private Connection newConnectionFromTab(int currentTab) throws SQLException{
-	return newConnection(infosOnglets.elementAt(currentTab).getHost(), infosOnglets.elementAt(currentTab).getPort());
+	return newConnection();
     }
     
     /* Ouvre une connexion vers le serveur lié à l'onglet sélectionné */
@@ -730,7 +740,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
        Renvoie l'index de l'onglet créé. */
     private int makeTab(){
 	// Le composant est null car il n'est pas encore créé. On l'ajoute un peu plus loin.
-	infosOnglets.add(jtp_onglets.getTabCount(), new InfosOnglet(this, null, "prod-bdd-mono-master-read", "3306"));
+	infosOnglets.add(jtp_onglets.getTabCount(), new InfosOnglet(this, null));
 	jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), makePanelForTab());
 	ButtonTabComponent btc = null;
 	jtp_onglets.setTabComponentAt(jtp_onglets.getTabCount()-1, btc = new ButtonTabComponent(jtp_onglets, this));
@@ -742,6 +752,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	return jtp_onglets.getTabCount()-1;
     }
 
+    
     private void makeTabFromQuery(String query){
 	int onglet = makeTab();
 	infosOnglets.elementAt(onglet).getJETA().setText(query);	
@@ -931,8 +942,6 @@ class InfosOnglet {
      * Le composant dans l'onglet sert de pointeur vers l'onglet
      */
     private Component tab;
-    String host; /* Serveur auquel se connecter pour exécuter la requête*/
-    String port; /* Le port sur le serveur */
     JEditTextArea jeta; /* Quel est le JEditTextArea contenant la requête à exécuter */
 
     /**
@@ -971,11 +980,9 @@ class InfosOnglet {
     public final void setApp(final VQueryBrowser newApp) {
 	this.app = newApp;
     }
-    public InfosOnglet(VQueryBrowser app, Component tab, String host, String port) {
+    public InfosOnglet(VQueryBrowser app, Component tab) {
 	this.app = app;
 	this.tab = tab;
-	this.host = host;
-	this.port = port;
     }
 
     public String getTabTitle(){
@@ -1026,16 +1033,7 @@ class InfosOnglet {
     public JEditTextArea getJETA(){
 	return jeta;
     }
-
-
-
-    public String getHost(){
-	return host;
-    }
-
-    public String getPort(){
-	return port;
-    }
+    
 }
 
 

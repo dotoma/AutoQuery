@@ -1,5 +1,5 @@
 BUGS :
-
+- le menu contextuel de complétion a des affichages fantaisistes
 
 BUGS CORRIGÉS :
 - Pas d'affichage quand une seule ligne
@@ -21,15 +21,15 @@ BUGS CORRIGÉS :
 - refresh automatique sur les requêtes des onglets (toutes les x minutes)
 - menu contextuel sur colonne résultat :
    - afficher la table correspondante : ID_REF_TABLE -> affiche REF_TABLE
-- réparer le menu contextuel de complétion
 - connexion
-   - fenêtre
    - gestionnaire de profils
 - une fois les résultats dans la JTable
    - possibilité de filtrer sur la colonne qu'on veut
 
 FAIT :
 
+- connexion
+   - fenêtre
 - menu contextuel sur les éléments de l'arbre :
    - date de mise à jour
    - nombre de lignes
