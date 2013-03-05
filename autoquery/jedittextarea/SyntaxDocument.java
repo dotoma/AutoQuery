@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * SyntaxDocument.java - Document that can be tokenized
  * Copyright (C) 1999 Slava Pestov

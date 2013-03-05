@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * DefaultInputHandler.java - Default implementation of an input handler
  * Copyright (C) 1999 Slava Pestov

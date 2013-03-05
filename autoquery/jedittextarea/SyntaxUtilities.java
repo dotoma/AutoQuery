@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * SyntaxUtilities.java - Utility functions used by syntax colorizing
  * Copyright (C) 1999 Slava Pestov

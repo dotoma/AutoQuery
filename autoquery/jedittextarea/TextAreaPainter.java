@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * TextAreaPainter.java - Paints the text area
  * Copyright (C) 1999 Slava Pestov

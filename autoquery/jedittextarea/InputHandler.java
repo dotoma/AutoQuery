@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * InputHandler.java - Manages key bindings and executes actions
  * Copyright (C) 1999 Slava Pestov

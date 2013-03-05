@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * Token.java - Generic token
  * Copyright (C) 1998, 1999 Slava Pestov

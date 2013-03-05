@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * TextAreaDefaults.java - Encapsulates default values for various settings
  * Copyright (C) 1999 Slava Pestov

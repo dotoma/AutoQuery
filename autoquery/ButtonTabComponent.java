@@ -1,3 +1,5 @@
+package autoquery;
+
 import javax.swing.*;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicButtonUI;
@@ -11,9 +13,9 @@ import java.awt.event.*;
  */ 
 public class ButtonTabComponent extends JPanel {
     private final JTabbedPane pane;
-    private final VQueryBrowser app;
+    private final AutoQuery app;
 
-    public ButtonTabComponent(final JTabbedPane pane, final VQueryBrowser app) {
+    public ButtonTabComponent(final JTabbedPane pane, final AutoQuery app) {
         //unset default FlowLayout' gaps
         super(new FlowLayout(FlowLayout.LEFT, 0, 0));
         System.out.println("Réf : " + ButtonTabComponent.this.hashCode());

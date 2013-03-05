@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * TextUtilities.java - Utility functions used by the text area classes
  * Copyright (C) 1999 Slava Pestov

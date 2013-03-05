@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * TokenMarker.java - Generic token marker
  * Copyright (C) 1998, 1999 Slava Pestov

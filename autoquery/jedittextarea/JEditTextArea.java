@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * JEditTextArea.java - jEdit's text component
  * Copyright (C) 1999 Slava Pestov
@@ -16,6 +18,7 @@ import java.awt.event.*;
 import java.awt.*;
 import java.util.Enumeration;
 import java.util.Vector;
+import autoquery.AutoQuery;
 
 /**
  * jEdit's text area component. It is more suited for editing program
@@ -1529,9 +1532,9 @@ public class JEditTextArea extends JComponent
 			inputHandler.keyTyped(evt);
 			break;
 		case KeyEvent.KEY_PRESSED:
-			VQueryBrowser app = VQueryBrowser.getVQueryBrowserParent(evt);
+			AutoQuery app = AutoQuery.getAutoQueryParent(evt);
 
-			/* Renvoie la touche à l'instance de VQueryBrowser. 
+			/* Renvoie la touche à l'instance de AutoQuery. 
 			   Elle peut faire des traitements avant de rendre 
 			   la main à l'InputHandler */
 			app.actionOnKey(evt);

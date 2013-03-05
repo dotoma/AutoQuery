@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * KeywordMap.java - Fast keyword->id map
  * Copyright (C) 1998, 1999 Slava Pestov

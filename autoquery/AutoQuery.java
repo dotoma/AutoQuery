@@ -1,3 +1,5 @@
+package autoquery;
+
 /* GUI */
 import javax.swing.JComponent;
 import javax.swing.JButton;
@@ -59,21 +61,14 @@ import java.awt.event.ActionEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
+/* Classes liées à JEditTextArea */
+import autoquery.jedittextarea.*;
 
-public class VQueryBrowserSwing{
+
+public class AutoQuery extends JFrame implements ActionListener, TableModelListener{
     public static void main(String args[]){
-	VQueryBrowser app = new VQueryBrowser(args);
+	AutoQuery app = new AutoQuery(args);
     }
-}
-
-
-/**
- * Describe class <code>VQueryBrowser</code> here.
- *
- * @author <a href="mailto:mad@portable-MAD">Marc Autord</a>
- * @version 1.0
- */
-class VQueryBrowser extends JFrame implements ActionListener, TableModelListener{
 
     /* Variables */
     private int keyTABCount = 0;
@@ -417,8 +412,8 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	return null;
     }
 
-    public VQueryBrowser(String args[]){
-	super("VQueryBrowser");
+    public AutoQuery(String args[]){
+	super("AutoQuery");
 	
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	
@@ -495,7 +490,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 										final byte TABLE_ROWS = 1;
 										String date = rs.elementAt(0)[UPDATE_TIME];
 										String rows = rs.elementAt(0)[TABLE_ROWS];
-										JOptionPane.showMessageDialog((Component) VQueryBrowser.this, 
+										JOptionPane.showMessageDialog((Component) AutoQuery.this, 
 											"Nombre de lignes : " + rows + "\n" +
 											"Date de dernière MÀJ : " + date,
 											"Détails de la table " + s_table,
@@ -512,7 +507,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 									if (rs != null){
 										final byte CREATE_STATEMENT = 1;
 										String create_statement = rs.elementAt(0)[CREATE_STATEMENT];
-										JOptionPane.showMessageDialog((Component) VQueryBrowser.this, 
+										JOptionPane.showMessageDialog((Component) AutoQuery.this, 
 											"La syntaxe de création de la table est :\n" + create_statement,
 											"CREATE statement de " + s_schema + "." + s_table,
 											JOptionPane.INFORMATION_MESSAGE);
@@ -558,7 +553,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 		    String requete = (String) jlist_historique.getSelectedValue();
 		    System.out.println("Requête sélectionnée : " + (String) jlist_historique.getSelectedValue());
 		    if (!requete.isEmpty()){
-			VQueryBrowser.this.makeTabFromQuery(requete);
+			AutoQuery.this.makeTabFromQuery(requete);
 		    }
 		}
 	    });
@@ -842,19 +837,19 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	return tm_schemas;
     }
 
-    /* Retrouve l'instance de VQueryBrowser qui contrôle l'objet lié à l'événement */
-    public static VQueryBrowser getVQueryBrowserParent(EventObject evt){
+    /* Retrouve l'instance de AutoQuery qui contrôle l'objet lié à l'événement */
+    public static AutoQuery getAutoQueryParent(EventObject evt){
 	if(evt != null)
 	    {
 		Object o = evt.getSource();
 		if(o instanceof Component)
 		    {
-			// find the parent VQueryBrowser
+			// find the parent AutoQuery
 			Component c = (Component)o;
 			for(;;)
 			{
-				if(c instanceof VQueryBrowser)
-					return (VQueryBrowser)c;
+				if(c instanceof AutoQuery)
+					return (AutoQuery)c;
 				else if(c == null)
 					break;
 				if(c instanceof JPopupMenu)
@@ -936,7 +931,7 @@ class InfosOnglet {
 
     private QueryTableModel modele;
     private JTable table;
-    private VQueryBrowser app;
+    private AutoQuery app;
 
     /**
      * Le composant dans l'onglet sert de pointeur vers l'onglet
@@ -966,9 +961,9 @@ class InfosOnglet {
     /**
      * Get the <code>App</code> value.
      *
-     * @return a <code>VQueryBrowser</code> value
+     * @return a <code>AutoQuery</code> value
      */
-    public final VQueryBrowser getApp() {
+    public final AutoQuery getApp() {
 	return app;
     }
 
@@ -977,10 +972,10 @@ class InfosOnglet {
      *
      * @param newApp The new App value.
      */
-    public final void setApp(final VQueryBrowser newApp) {
+    public final void setApp(final AutoQuery newApp) {
 	this.app = newApp;
     }
-    public InfosOnglet(VQueryBrowser app, Component tab) {
+    public InfosOnglet(AutoQuery app, Component tab) {
 	this.app = app;
 	this.tab = tab;
     }

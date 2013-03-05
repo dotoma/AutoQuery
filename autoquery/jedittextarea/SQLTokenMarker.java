@@ -1,3 +1,5 @@
+package autoquery.jedittextarea;
+
 /*
  * SQLTokenMarker.java - Generic SQL token marker
  * Copyright (C) 1999 mike dillon
