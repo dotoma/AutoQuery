@@ -19,11 +19,13 @@ public class LoginDialog extends JDialog {
 	private JLabel lbPassword;	
 	private JButton btnLogin;
 	private JButton btnCancel;
+	private JButton btnSave;
 	private boolean succeeded = false;
+	private String nomConnexion = null;
  
     public LoginDialog(Frame parent) {
         super(parent, "Gestionnaire de connexion", true);
-        //
+        
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints cs = new GridBagConstraints();
  
@@ -76,6 +78,8 @@ public class LoginDialog extends JDialog {
         cs.gridy = 3;
         cs.gridwidth = 2;
         panel.add(pfPassword, cs);
+        
+        
         panel.setBorder(new LineBorder(Color.GRAY));
  
         btnLogin = new JButton("Login");
@@ -109,12 +113,32 @@ public class LoginDialog extends JDialog {
                     }
                 }
             });
-        btnCancel = new JButton("Cancel");
+        btnCancel = new JButton("Annuler");
         btnCancel.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 dispose();
             }
         });
+        
+        btnSave = new JButton("Enregistrer");
+        btnSave.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	    String s = (String) JOptionPane.showInputDialog(
+            	    	    			LoginDialog.this,
+            	    	    			"Entrez un nom pour cette connexion :",
+            	    	    			"Sauvegarder les paramètres de connexion",
+            	    	    			JOptionPane.PLAIN_MESSAGE,
+            	    	    			JOptionPane.QUESTION_MESSAGE,
+            	    	    			null,
+            	    	    			getHost());
+            	    if ((s != null) && (s.trim().length() > 0)) {
+            	    	    setNomConnexion(s);
+            	    } else { /* Cas où le nom n'est pas correct */
+            	    	    System.out.println("Mauvais nom : configuration non sauvegardée.");
+            	    }
+            }
+        });
+        
         
         JPanel bp = new JPanel();
         bp.add(btnLogin);
@@ -129,6 +153,10 @@ public class LoginDialog extends JDialog {
     }
  
  
+    public void setNomConnexion(String nomConnexion){
+    	    this.nomConnexion = nomConnexion;
+    }
+    
     public boolean loginSucceeded() {
         return succeeded;
     }
