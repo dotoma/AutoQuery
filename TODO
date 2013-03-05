@@ -18,10 +18,6 @@ BUGS CORRIGÉS :
 - signets
 - recherche de champs/tables dans l'arbre à droite
 - icône pour l'application 
-- menu contextuel sur les éléments de l'arbre :
-   - CREATE STATEMENT
-   - date de mise à jour
-   - nombre de lignes
 - refresh automatique sur les requêtes des onglets (toutes les x minutes)
 - menu contextuel sur colonne résultat :
    - afficher la table correspondante : ID_REF_TABLE -> affiche REF_TABLE
@@ -29,9 +25,15 @@ BUGS CORRIGÉS :
 - connexion
    - fenêtre
    - gestionnaire de profils
+- une fois les résultats dans la JTable
+   - possibilité de filtrer sur la colonne qu'on veut
 
 FAIT :
 
+- menu contextuel sur les éléments de l'arbre :
+   - date de mise à jour
+   - nombre de lignes
+   - CREATE STATEMENT
 - la status bar affiche l'onglet qui parle : "Émetteur : message"
 - un JTable par JETA
    - création d'un JTable et d'un QueryTableModel pour chaque JETA

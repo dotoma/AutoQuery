@@ -474,7 +474,9 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 							final String s_table = (String) ((DefaultMutableTreeNode) selPath.getPathComponent(type-1)).getUserObject();
 							/* Remplissage du menu contextuel */
 							JPopupMenu popup = new JPopupMenu();
-							JMenuItem item = new JMenuItem("Date de dernière MàJ");
+							
+							/* Infos sur la table */
+							JMenuItem item = new JMenuItem("Informations...");
 							popup.add(item);	    
 							item.addActionListener(new ActionListener(){
 								public void actionPerformed(ActionEvent ae){
@@ -490,7 +492,24 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 											"Détails de la table " + s_table,
 											JOptionPane.INFORMATION_MESSAGE);
 									}
+								}});
+							
+							/* CREATE statement */
+							item = new JMenuItem("Syntaxe du CREATE...");
+							popup.add(item);	    
+							item.addActionListener(new ActionListener(){
+								public void actionPerformed(ActionEvent ae){
+									Vector<String[]> rs = executeRequete("SHOW CREATE TABLE " + s_schema + "." + s_table + ";");
+									if (rs != null){
+										final byte CREATE_STATEMENT = 1;
+										String create_statement = rs.elementAt(0)[CREATE_STATEMENT];
+										JOptionPane.showMessageDialog((Component) VQueryBrowser.this, 
+											"La syntaxe de création de la table est :\n" + create_statement,
+											"CREATE statement de " + s_schema + "." + s_table,
+											JOptionPane.INFORMATION_MESSAGE);
+									}
 								}});	
+							
 							popup.show(jt_arborescence_BDD, e.getX(), e.getY());
 							popup.setVisible(true);
 							break;
