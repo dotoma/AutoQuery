@@ -35,6 +35,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import javax.swing.tree.TreePath;
+import javax.swing.JOptionPane;
 
 /* SQL */
 import java.sql.ResultSet;
@@ -376,7 +377,41 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
     }
 
 
+    /* On ne peut pas renvoyer un ResultSet car le ResultSet est fermé au moment
+       où l'instance de Statement est fermée. On est donc obligé de parser le résultat. 
+       L'idéal, plutôt que de le faire à la main serait d'avoir une espèce d'ORM. */
+    private Vector<String[]> executeRequete(String query){
+ 	Connection con = null;
+ 	ResultSet rs = null;
+ 	Statement st = null;
+ 	Vector<String[]> cache = new Vector<String[]>();
+	try {
+	    loadDriver();
+	    System.out.println("Connexion...");
+	    con = newConnection("prod-bdd-mono-master-read", "3306");
+	    st = con.createStatement();
+	    rs = st.executeQuery(query);
+	    			
+	    while (rs.next()) {
+	    	    int colCount = rs.getMetaData().getColumnCount();
+	    	    String[] record = new String[colCount];
+	    	    for (int i = 0; i < colCount; i++) {
+			record[i] = rs.getString(i + 1);
+		    }
+		    cache.addElement(record);
+	    }
+	    return cache;
 
+	    
+	} catch (Exception e){
+	    System.err.println("Exception : " + e.getMessage());
+	} finally {
+            if (rs != null) try { rs.close(); } catch (SQLException ignore) {}
+            if (st != null) try { st.close(); } catch (SQLException ignore) {}
+            if (con != null) try { con.close(); } catch (SQLException ignore) {}
+	}
+	return null;
+    }
 
     public VQueryBrowser(String args[]){
 	super("VQueryBrowser");
@@ -426,21 +461,46 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 
 		MouseListener ml = new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
-			    TreePath selPath = jt_arborescence_BDD.getPathForLocation(e.getX(), e.getY());
-			    int type = selPath.getPathCount();
-			    switch (type){
-			    case 2: 
-				System.out.println("Vous avez sélectionné un schéma.");
-			        break;
-			    case 3: 
-				System.out.println("Vous avez sélectionné une table.");
-			        break;
-			    case 4: 
-				System.out.println("Vous avez sélectionné un champ.");
-			        break;
-			    }
+				if (e.getButton() == MouseEvent.BUTTON3){
+					TreePath selPath = jt_arborescence_BDD.getPathForLocation(e.getX(), e.getY());
+					int type = selPath.getPathCount();
+					switch (type){
+						case 2: 
+							System.out.println("Pas d'action sur les schémas.");
+							break;
+						case 3: 
+							System.out.println("Affichage menu contextuel.");
+							final String s_schema = (String) ((DefaultMutableTreeNode) selPath.getPathComponent(type-2)).getUserObject();
+							final String s_table = (String) ((DefaultMutableTreeNode) selPath.getPathComponent(type-1)).getUserObject();
+							/* Remplissage du menu contextuel */
+							JPopupMenu popup = new JPopupMenu();
+							JMenuItem item = new JMenuItem("Date de dernière MàJ");
+							popup.add(item);	    
+							item.addActionListener(new ActionListener(){
+								public void actionPerformed(ActionEvent ae){
+									Vector<String[]> rs = executeRequete("SELECT UPDATE_TIME, TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA = '" + s_schema + "' AND TABLE_NAME = '" + s_table + "'");
+									if (rs != null){
+										final byte UPDATE_TIME = 0;
+										final byte TABLE_ROWS = 1;
+										String date = rs.elementAt(0)[UPDATE_TIME];
+										String rows = rs.elementAt(0)[TABLE_ROWS];
+										JOptionPane.showMessageDialog((Component) VQueryBrowser.this, 
+											"Nombre de lignes : " + rows + "\n" +
+											"Date de dernière MÀJ : " + date,
+											"Détails de la table " + s_table,
+											JOptionPane.INFORMATION_MESSAGE);
+									}
+								}});	
+							popup.show(jt_arborescence_BDD, e.getX(), e.getY());
+							popup.setVisible(true);
+							break;
+						case 4: 
+							System.out.println("Vous avez sélectionné le champ : " + (String) ((DefaultMutableTreeNode) selPath.getPathComponent(type-1)).getUserObject());
+							break;
+					}
+				}
 			}
-		    };
+		};
 		jt_arborescence_BDD.addMouseListener(ml);
 	} 
 
@@ -552,7 +612,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 		    if (!jb_historique.isEnabled()){
 			jb_historique.setEnabled(true);
 		    }
-		    executeRequete();
+		    executeRequeteOngletActif();
 		}
 	    });
 	menu_requete.add(menu_requete_executer);
@@ -595,7 +655,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	return newConnectionFromTab(jtp_onglets.getSelectedIndex());
     }
 
-    private void executeRequete(){
+    private void executeRequeteOngletActif(){
 	System.out.println("Exécution de la requête...");
 	Connection con = null;
 	try{
@@ -699,6 +759,7 @@ class VQueryBrowser extends JFrame implements ActionListener, TableModelListener
 	return infosOnglets;
     }
 
+    /* Crée l'arbre de description de la BDD */
     private void createTree(DefaultMutableTreeNode top, TreeMap <String, TreeMap<String, TreeSet<String>> > tm_arbre){
 	DefaultMutableTreeNode dmtn_schema;
 	DefaultMutableTreeNode dmtn_table;
