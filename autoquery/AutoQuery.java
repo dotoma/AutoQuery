@@ -69,6 +69,8 @@ import autoquery.jedittextarea.*;
 
 public class AutoQuery extends JFrame implements ActionListener, TableModelListener{
     public static void main(String args[]){
+
+	/* Dessine l'interface en suivant les précepts de l'OS hôte */
 	try {
 	    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 	} 
@@ -532,6 +534,16 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 									}
 								}});	
 							
+							/* 1000 premières lignes */
+							item = new JMenuItem("SELECT... LIMIT 1000");
+							popup.add(item);	    
+							item.addActionListener(new ActionListener(){
+								public void actionPerformed(ActionEvent ae){
+								    makeTabFromQuery("SELECT * FROM " + s_schema + "." + s_table + " LIMIT 1000;",
+										     s_table);
+								}});	
+
+
 							popup.show(jt_arborescence_BDD, e.getX(), e.getY());
 							popup.setVisible(true);
 							break;
@@ -770,6 +782,13 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	int onglet = makeTab();
 	infosOnglets.elementAt(onglet).getJETA().setText(query);	
     }
+
+    private void makeTabFromQuery(String query, String title){
+	int onglet = makeTab();
+	infosOnglets.elementAt(onglet).getJETA().setText(query);	
+	getQueryTabs().setTitleAt(onglet, title);
+    }
+
 
     private JPanel makePanelForTab(){
 	int nbTabs = jtp_onglets.getTabCount();

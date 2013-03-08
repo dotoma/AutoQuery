@@ -46,6 +46,7 @@ BUGS CORRIGÉS :
 
 FAIT :
 
+- look and feel de l'OS 
 - packager l'application
 - connexion
    - fenêtre
@@ -53,6 +54,7 @@ FAIT :
    - date de mise à jour
    - nombre de lignes
    - CREATE STATEMENT
+   - afficher les 1000 premières lignes + nommer l'onglet après la table
 - la status bar affiche l'onglet qui parle : "Émetteur : message"
 - un JTable par JETA
    - création d'un JTable et d'un QueryTableModel pour chaque JETA
