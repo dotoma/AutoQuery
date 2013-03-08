@@ -151,7 +151,7 @@ public class LoginDialog extends JDialog {
     }
  
  
-    public void setNomConnexion(String nomConnexion){
+    private void setNomConnexion(String nomConnexion){
     	    this.nomConnexion = nomConnexion;
     }
     
@@ -174,5 +174,10 @@ public class LoginDialog extends JDialog {
     public String getPassword(){
     	return pfPassword.getText();	    
     }    
+
+    public String getNomConnexion(){
+	return nomConnexion;
+    }
+
 
 }

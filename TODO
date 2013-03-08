@@ -29,7 +29,6 @@ BUGS CORRIGÉS :
 - grouper les lignes d'une sous-requête (à la Eclipse) (AJS)
 - trouver les occurrences de la sélection (à la Notepad++) (AJS)
 - changer de position les onglets (AJS)
-- indiquer les paramètres de connexion dans le titre
 - enlever les tilda roses dégueulasses (GBA)
 - tri des colonnes pas par ordre alphabétique mais par ordre numérique
 - possibilité d'exécuter les requêtes
@@ -55,6 +54,7 @@ BUGS CORRIGÉS :
 
 FAIT :
 
+- indiquer les paramètres de connexion dans le titre
 - menu "ouvrir une requête" (GBA)
 - look and feel de l'OS 
 - packager l'application

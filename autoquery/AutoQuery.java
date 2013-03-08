@@ -102,6 +102,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
     private String port; /* Le port sur le serveur */
     private String username; /* Le user pour se connecter */
     private String password; /* Le mot de passe pour se connecter */
+    private String nomConnexion; /* Le nom donné à cette connexion */
 
     /* Arborescence BDD */
     private JTree jt_arborescence_BDD;
@@ -456,6 +457,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	port = loginDialog.getPort();
 	username = loginDialog.getUsername();
 	password = loginDialog.getPassword();
+	nomConnexion = loginDialog.getNomConnexion();
 	
 	/* Sauvegarde des alias */
 	tm_alias = new TreeMap();
@@ -668,7 +670,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	menu_requete_ouvrir.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 	menu_requete_ouvrir.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
-		    //Create a file chooser
+		    
+		    /** Ouverture d'une boîte de dialogue de choix de fichier **/
 		    final JFileChooser fc = new JFileChooser();
 		    int returnVal = fc.showOpenDialog(menu_requete_ouvrir);
 		    
@@ -716,10 +719,15 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
 	add("North", menu_bar);
 
+	setTitle(makeFrameTitle());
 	pack();
 	setVisible(true);
     }
 
+    /** Donne un titre à l'application **/
+    private String makeFrameTitle(){
+	return "AutoQuery   ---  " + username + " @ " + host + ((nomConnexion == null) ? "" : " (" + nomConnexion + ")");
+    }
 
 
     public void tableChanged(TableModelEvent e){
