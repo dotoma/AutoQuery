@@ -127,10 +127,7 @@ public class LoginDialog extends JDialog {
             	    	    			LoginDialog.this,
             	    	    			"Entrez un nom pour cette connexion :",
             	    	    			"Sauvegarder les paramètres de connexion",
-            	    	    			JOptionPane.PLAIN_MESSAGE,
-            	    	    			JOptionPane.QUESTION_MESSAGE,
-            	    	    			null,
-            	    	    			getHost());
+            	    	    			JOptionPane.PLAIN_MESSAGE);
             	    if ((s != null) && (s.trim().length() > 0)) {
             	    	    setNomConnexion(s);
             	    } else { /* Cas où le nom n'est pas correct */
@@ -143,6 +140,7 @@ public class LoginDialog extends JDialog {
         JPanel bp = new JPanel();
         bp.add(btnLogin);
         bp.add(btnCancel);
+	bp.add(btnSave);
  
         getContentPane().add(panel, BorderLayout.CENTER);
         getContentPane().add(bp, BorderLayout.PAGE_END);

@@ -1,5 +1,20 @@
 BUGS :
 - le menu contextuel de complétion a des affichages fantaisistes
+- les grosses requêtes font éclater la mémoire :
+   ATTENTION: Exception on Toolkit thread
+   java.lang.OutOfMemoryError: Java heap space
+	at sun.awt.SunToolkit.wakeupEventQueue(SunToolkit.java:350)
+	at sun.awt.PostEventQueue.postEvent(SunToolkit.java:2128)
+	at sun.awt.SunToolkit.postEvent(SunToolkit.java:585)
+	at sun.awt.X11.XWindow.postEvent(XWindow.java:394)
+	at sun.awt.X11.XWindow.postEventToEventQueue(XWindow.java:405)
+	at sun.awt.X11.XWindow.handleMotionNotify(XWindow.java:779)
+	at sun.awt.X11.XBaseWindow.dispatchEvent(XBaseWindow.java:1116)
+	at sun.awt.X11.XBaseWindow.dispatchToWindow(XBaseWindow.java:1086)
+	at sun.awt.X11.XToolkit.dispatchEvent(XToolkit.java:513)
+	at sun.awt.X11.XToolkit.run(XToolkit.java:619)
+	at sun.awt.X11.XToolkit.run(XToolkit.java:543)
+	at java.lang.Thread.run(Thread.java:662)
 
 BUGS CORRIGÉS :
 - Pas d'affichage quand une seule ligne
@@ -7,6 +22,9 @@ BUGS CORRIGÉS :
 
 À FAIRE :
 
+- indiquer les paramètres de connexion dans le titre
+- enlever les tilda roses dégueulasses
+- tri des colonnes pas par ordre alphabétique mais par ordre numérique
 - possibilité d'exécuter les requêtes
   - enregistrement en CSV
   - enregistrement pour Excel
