@@ -714,10 +714,9 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	menu_requete.add(menu_requete_executer);
 
 
+	/* Ajout du menu à la fenêtre */
 	menu_bar.add(menu_requete);
-	
-
-	add("North", menu_bar);
+       	add("North", menu_bar);
 
 	setTitle(makeFrameTitle());
 	pack();

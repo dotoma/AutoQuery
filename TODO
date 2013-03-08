@@ -47,8 +47,6 @@ BUGS CORRIGÉS :
 - refresh automatique sur les requêtes des onglets (toutes les x minutes)
 - menu contextuel sur colonne résultat :
    - afficher la table correspondante : ID_REF_TABLE -> affiche REF_TABLE
-- connexion
-   - gestionnaire de profils
 - une fois les résultats dans la JTable
    - possibilité de filtrer sur la colonne qu'on veut
 
@@ -60,6 +58,7 @@ FAIT :
 - packager l'application
 - connexion
    - fenêtre
+   - gestionnaire de profils
 - menu contextuel sur les éléments de l'arbre :
    - date de mise à jour
    - nombre de lignes

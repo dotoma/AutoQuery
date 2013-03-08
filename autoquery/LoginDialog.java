@@ -7,75 +7,128 @@ import javax.swing.border.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.prefs.Preferences;
+import java.util.prefs.BackingStoreException;
+
  
 public class LoginDialog extends JDialog {
-	private JTextField tfHost;
-	private JLabel lbHost;
-	private JTextField tfPort;
-	private JLabel lbPort;
-	private JTextField tfUsername;
-	private JLabel lbUsername;
-	private JPasswordField pfPassword;
-	private JLabel lbPassword;	
-	private JButton btnLogin;
-	private JButton btnCancel;
-	private JButton btnSave;
-	private boolean succeeded = false;
-	private String nomConnexion = null;
+    private JTextField tfHost;
+    private JLabel lbHost;
+    private JTextField tfPort;
+    private JLabel lbPort;
+    private JTextField tfUsername;
+    private JLabel lbUsername;
+    private JPasswordField pfPassword;
+    private JLabel lbPassword;	
+    private JButton btnLogin;
+    private JButton btnCancel;
+    private JButton btnSave;
+    private boolean succeeded = false;
+    private String nomConnexion = null;
+    private JComboBox jcb_profiles;
+    Preferences prefs_profiles;
+
+    private static final String PROFILES = "connection_profiles";
+    private static final String HOST = "host";
+    private static final String PORT = "port";
+    private static final String USERNAME = "username";
  
     public LoginDialog(Frame parent) {
         super(parent, "Gestionnaire de connexion", true);
         
+	Preferences node_login_dialog = Preferences.userNodeForPackage(LoginDialog.class);
+	prefs_profiles = node_login_dialog.node(PROFILES);
+
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints cs = new GridBagConstraints();
  
         cs.fill = GridBagConstraints.HORIZONTAL;
- 
+
+	/* Récupération des profils de connexion */
+	String[] profiles = null;
+	try{
+	    profiles = prefs_profiles.childrenNames();
+	} catch (BackingStoreException bse){}
+
+
+	/* Disposition des widgets */
+	short ligneEnCours = 0;
+
+        cs.gridx = 0;
+        cs.gridy = ligneEnCours;
+        cs.gridwidth = 1;
+        panel.add(new JLabel("Profil"), cs);
+
+
+        cs.gridx = 1;
+        cs.gridy = ligneEnCours;
+        cs.gridwidth = 2;
+        panel.add(jcb_profiles = new JComboBox(profiles), cs);
+	jcb_profiles.addActionListener(new ActionListener(){
+		public void actionPerformed(ActionEvent ae){
+		    JComboBox cb = (JComboBox) ae.getSource();
+		    String profileName = (String) cb.getSelectedItem();
+		    Preferences this_profile = prefs_profiles.node(profileName);
+		    tfHost.setText(this_profile.get(HOST, ""));
+		    tfPort.setText(this_profile.get(PORT, ""));
+		    tfUsername.setText(this_profile.get(USERNAME, ""));
+		}
+	    });
+
+	ligneEnCours++;
+
         lbHost = new JLabel("Hôte");
         cs.gridx = 0;
-        cs.gridy = 0;
+        cs.gridy = ligneEnCours;
         cs.gridwidth = 1;
         panel.add(lbHost, cs);
  
         tfHost = new JTextField(20);
         cs.gridx = 1;
-        cs.gridy = 0;
+        cs.gridy = ligneEnCours;
         cs.gridwidth = 2;
         panel.add(tfHost, cs);
         
+
+	ligneEnCours++;
+
         lbPort = new JLabel("Port ");
         cs.gridx = 0;
-        cs.gridy = 1;
+        cs.gridy = ligneEnCours;
         cs.gridwidth = 1;
         panel.add(lbPort, cs);
  
         tfPort = new JTextField(20);
         cs.gridx = 1;
-        cs.gridy = 1;
+        cs.gridy = ligneEnCours;
         cs.gridwidth = 2;
         panel.add(tfPort, cs);
        
+	ligneEnCours++;
+
         lbUsername = new JLabel("Utilisateur");
         cs.gridx = 0;
-        cs.gridy = 2;
+        cs.gridy = ligneEnCours;
         cs.gridwidth = 1;
         panel.add(lbUsername, cs);
  
         tfUsername = new JTextField(20);
         cs.gridx = 1;
-        cs.gridy = 2;
+        cs.gridy = ligneEnCours;
         cs.gridwidth = 2;
         panel.add(tfUsername, cs);
  
+	ligneEnCours++;
+
         lbPassword = new JLabel("Mot de passe ");
         cs.gridx = 0;
-        cs.gridy = 3;
+        cs.gridy = ligneEnCours;
         cs.gridwidth = 1;
         panel.add(lbPassword, cs);
  
         pfPassword = new JPasswordField(20);
         cs.gridx = 1;
-        cs.gridy = 3;
+        cs.gridy = ligneEnCours;
         cs.gridwidth = 2;
         panel.add(pfPassword, cs);
         
@@ -129,7 +182,7 @@ public class LoginDialog extends JDialog {
             	    	    			"Sauvegarder les paramètres de connexion",
             	    	    			JOptionPane.PLAIN_MESSAGE);
             	    if ((s != null) && (s.trim().length() > 0)) {
-            	    	    setNomConnexion(s);
+            	    	    saveConnectionProfile(s);
             	    } else { /* Cas où le nom n'est pas correct */
             	    	    System.out.println("Mauvais nom : configuration non sauvegardée.");
             	    }
@@ -151,8 +204,12 @@ public class LoginDialog extends JDialog {
     }
  
  
-    private void setNomConnexion(String nomConnexion){
-    	    this.nomConnexion = nomConnexion;
+    private void saveConnectionProfile(String connectionProfileName){
+	this.nomConnexion = connectionProfileName;
+	Preferences this_profile = prefs_profiles.node(connectionProfileName);
+	this_profile.put(HOST, getHost());
+	this_profile.put(PORT, getPort());
+	this_profile.put(USERNAME, getUsername());
     }
     
     public boolean loginSucceeded() {
