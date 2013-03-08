@@ -38,6 +38,13 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import javax.swing.tree.TreePath;
 import javax.swing.JOptionPane;
+import javax.swing.JFileChooser;
+import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import java.io.IOException;
 
 /* SQL */
 import java.sql.ResultSet;
@@ -60,8 +67,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 /* Classes liées à JEditTextArea */
 import autoquery.jedittextarea.*;
@@ -657,6 +662,41 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	
 	/** Menu Requête **/
 	JMenu menu_requete = new JMenu("Requête");
+	
+	/* Ouvrir un fichier */
+	final JMenuItem menu_requete_ouvrir = new JMenuItem("Ouvrir...");
+	menu_requete_ouvrir.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+	menu_requete_ouvrir.addActionListener(new ActionListener(){
+		public void actionPerformed(ActionEvent e){
+		    //Create a file chooser
+		    final JFileChooser fc = new JFileChooser();
+		    int returnVal = fc.showOpenDialog(menu_requete_ouvrir);
+		    
+		    if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File inFile = fc.getSelectedFile();
+			try {
+			    FileReader fr = new FileReader(inFile);
+			    BufferedReader bufRdr = new BufferedReader(fr);
+                    
+			    String line = null;
+			    StringBuffer buf = new StringBuffer("/* Fichier " + inFile.getName() + " */\n");
+			    while ((line = bufRdr.readLine()) != null){
+				buf.append(line + "\n");
+			    }
+			    bufRdr.close();
+			    getActiveJEditTextArea().setText(buf.toString());
+                    
+			} catch (IOException ioex) {
+			    System.err.println("Erreur lors du chargement du fichier.");
+			    System.err.println(ioex);
+			}
+		    }
+		}
+	    });
+	menu_requete.add(menu_requete_ouvrir);
+
+
+	/* Exécuter une requête */
 	JMenuItem menu_requete_executer = new JMenuItem("Exécuter", KeyEvent.VK_W);
 	menu_requete_executer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
 	menu_requete_executer.addActionListener(new ActionListener(){
@@ -669,6 +709,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 		}
 	    });
 	menu_requete.add(menu_requete_executer);
+
+
 	menu_bar.add(menu_requete);
 	
 
