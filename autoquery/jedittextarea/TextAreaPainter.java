@@ -510,7 +510,7 @@ public class TextAreaPainter extends JComponent implements TabExpander
 			{
 				paintHighlight(gfx,line,y);
 				styles[Token.INVALID].setGraphicsFlags(gfx,defaultFont);
-				gfx.drawString("~",0,y + fm.getHeight());
+				/* gfx.drawString("~",0,y + fm.getHeight()); Ligne originale avec un "~" en tête de ligne*/ 
 			}
 		}
 		else if(tokenMarker == null)
