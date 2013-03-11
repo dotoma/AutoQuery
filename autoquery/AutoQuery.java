@@ -1227,7 +1227,7 @@ class QueryTableModel extends AbstractTableModel {
 		public void done(){
 		    System.out.println("Le résultat contient " + getRowCount() + " lignes et " + getColumnCount() + " colonnes.");
 		    infosOnglet.getApp().showStatus(infosOnglet.getTabTitle(),
-						    "Traitement local effectué");
+						    getRowCount() + " ligne(s) extraite(s).");
 		    fireTableChanged(null);
 		}
 	    };

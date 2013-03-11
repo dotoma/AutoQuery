@@ -21,9 +21,14 @@ BUGS CORRIGÉS :
 
 
 À FAIRE :
-
+- enregistrer les onglets quand on ferme
+- ajouter des liens vers ePP
+- défilement par roulette dans le JETA
+- changer la police dégueulasse (GBA)
+- numéroter les lignes (GBA)
+- encodage des requêtes ouvertes
+   - problème du caractère invisible dû à QueryBrowser (GBA)
 - menu "Quelle version ?"
-- indiquer le nombre de lignes dans le résultat de la requête
 - indiquer le nombre de lignes dans le JETA
 - highlight matching parenthesis (à la EMACS)
 - grouper les lignes d'une sous-requête (à la Eclipse) (AJS)
@@ -32,8 +37,9 @@ BUGS CORRIGÉS :
 - enlever les tilda roses dégueulasses (GBA)
 - tri des colonnes pas par ordre alphabétique mais par ordre numérique
 - possibilité d'exécuter les requêtes
-  - raccourci clavier (AJS)
-  - enregistrement en CSV
+  - raccourci clavier (AJS/GBA)
+  - export en CSV
+  - export CSV sans affichage dans le ResultSet
   - enregistrement pour Excel
   - affichage du temps d'exécution pendant l'exécution
   - distinction dans l'affichage entre 
@@ -41,7 +47,9 @@ BUGS CORRIGÉS :
       - le temps de mise en forme par le QueryTableModel
 - démarrage sans réseau : proposer un arbre  parmi des arbres sauvegardés 
 - signets
-- sauvegarder historique et séparer par jour
+- historique
+  - effacer l'historique  
+  - sauvegarder historique et séparer par jour
 - recherche de champs/tables dans l'arbre à droite
 - icône pour l'application 
 - refresh automatique sur les requêtes des onglets (toutes les x minutes)
@@ -51,7 +59,9 @@ BUGS CORRIGÉS :
    - possibilité de filtrer sur la colonne qu'on veut
 
 FAIT :
-
+- indiquer le nombre de lignes dans le résultat de la requête (GBA)
+- tout sélectionner (GBA)
+- aller au nouvel onglet (GBA)
 - indiquer les paramètres de connexion dans le titre
 - menu "ouvrir une requête" (GBA)
 - look and feel de l'OS 
