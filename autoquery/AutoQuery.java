@@ -656,7 +656,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	menu_onglets_ajout.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
 	menu_onglets_ajout.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
-		    makeTab();
+		    /* Sélectionne l'onglet nouvellement créé */
+		    jtp_onglets.setSelectedIndex(makeTab()); 
 		}
 	    });
 	menu_onglets.add(menu_onglets_ajout);
