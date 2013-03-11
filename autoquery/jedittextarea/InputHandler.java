@@ -74,6 +74,7 @@ public abstract class InputHandler extends KeyAdapter
     public static final ActionListener COPY = new copy(); // Ajout MAD
     public static final ActionListener CUT = new cut(); // Ajout MAD
     public static final ActionListener PASTE = new paste(); // Ajout MAD
+    public static final ActionListener SELECT_ALL = new selectAll(); // Ajout MAD
 
 	// Default action
 	public static final ActionListener INSERT_CHAR = new insert_char();
@@ -120,6 +121,7 @@ public abstract class InputHandler extends KeyAdapter
 		actions.put("cut",CUT); // Ajouts MAD
 		actions.put("copy",COPY);
 		actions.put("paste",PASTE);
+		actions.put("selectAll",SELECT_ALL);
 	}
 
 	/**
@@ -1102,6 +1104,19 @@ public abstract class InputHandler extends KeyAdapter
 		    
 			JEditTextArea textArea = getTextArea(evt);
 			textArea.cut();
+		}
+	
+    }
+
+    // Ajout MAD de select all
+
+    public static class selectAll implements ActionListener
+    {
+		public void actionPerformed(ActionEvent evt)
+		{
+		    
+			JEditTextArea textArea = getTextArea(evt);
+			textArea.selectAll();
 		}
 	
     }

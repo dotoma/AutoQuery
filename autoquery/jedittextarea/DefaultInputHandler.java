@@ -76,9 +76,12 @@ public class DefaultInputHandler extends InputHandler
 
 		addKeyBinding("C+ENTER",REPEAT);
 
+		/* Ajouts MAD */
 		addKeyBinding("C+C",COPY);
 		addKeyBinding("C+V",PASTE);
 		addKeyBinding("C+X",CUT);
+
+		addKeyBinding("C+A",SELECT_ALL);
 	}
 
 	/**
