@@ -45,6 +45,7 @@ import java.io.BufferedReader;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import java.io.IOException;
+import java.util.HashMap;
 
 /* SQL */
 import java.sql.ResultSet;
@@ -97,7 +98,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
     /* Variables */
     private int keyTABCount = 0;
-    private Vector<InfosOnglet> infosOnglets = new Vector();
+    private HashMap<Component, InfosOnglet> infosOnglets = new HashMap<Component, InfosOnglet>();
     private String host; /* Serveur auquel se connecter pour exécuter la requête*/
     private String port; /* Le port sur le serveur */
     private String username; /* Le user pour se connecter */
@@ -114,7 +115,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
     /* Composants */
     StatusBar status_bar;
     JPopupMenu popup;
-    JTabbedPane jtp_onglets;
+    DnDTabbedPane jtp_onglets;
     JTabbedPane jtp_droite;
     DefaultListModel lm_historique;
     JButton jb_historique;
@@ -599,11 +600,11 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	jtp_droite.addTab("Historique", jp_historique);	
 	
 	/* Crée le composant qui accueille les onglets */
-	jtp_onglets = new JTabbedPane(SwingConstants.TOP);
+	jtp_onglets = new DnDTabbedPane();//new DnDTabbedPane(SwingConstants.TOP);
 	jtp_onglets.setOpaque(true);
 
 	/* Ajoute un onglet aux composants gérant les onglets en lui passant les paramètres de connexion */
-	makeTab();
+	Component premier_onglet = makeTab();
 
 	/* Crée la status bar */
 	status_bar = new StatusBar();
@@ -611,7 +612,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
 	/* Crée la partie de gauche */
 	/** Accueil des composants **/
-	scrollPaneResultSet = new JScrollPane(infosOnglets.elementAt(0).getTable());
+	scrollPaneResultSet = new JScrollPane(infosOnglets.get(premier_onglet).getTable());
 	JPanel panel_bas = new JPanel();
 	panel_bas.setLayout(new BorderLayout());
 	panel_bas.add(scrollPaneResultSet, BorderLayout.CENTER);
@@ -641,8 +642,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	jtp_onglets.addChangeListener(new ChangeListener()
 	    {
 		public void stateChanged(ChangeEvent e){
-		    int index = jtp_onglets.getSelectedIndex();
-		    InfosOnglet infos = infosOnglets.elementAt(index);
+		    Component onglet = jtp_onglets.getTabComponentAt(jtp_onglets.getSelectedIndex());
+		    InfosOnglet infos = infosOnglets.get(onglet);
 		    setActiveTable(infos.getTable());
 		}
 	    });
@@ -657,7 +658,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	menu_onglets_ajout.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
 		    /* Sélectionne l'onglet nouvellement créé */
-		    jtp_onglets.setSelectedIndex(makeTab()); 
+		    Component onglet = makeTab();
+		    jtp_onglets.setSelectedIndex(jtp_onglets.indexOfTabComponent(onglet)); 
 		}
 	    });
 	menu_onglets.add(menu_onglets_ajout);
@@ -779,7 +781,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
     /** Renvoie le JEditTextArea sur l'onglet sélectionné **/
     private JEditTextArea getActiveJEditTextArea(){
-	return infosOnglets.elementAt(jtp_onglets.getSelectedIndex()).getJETA();
+	return infosOnglets.get(jtp_onglets.getSelectedComponent()).getJETA();
     }
 
     private void setActiveTable(JTable newJTable){
@@ -790,7 +792,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
     /** Renvoie le QueryTableModel correspondant à l'onglet sélectionné **/
     private QueryTableModel getActiveQueryTableModel(){
-	return infosOnglets.elementAt(jtp_onglets.getSelectedIndex()).getModele();
+	return infosOnglets.get(jtp_onglets.getSelectedComponent()).getModele();
     }
 
     public JTabbedPane getQueryTabs() {
@@ -800,10 +802,10 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
     /* Crée de quoi accueillir les résultats de requêtes :
      JTable, QueryTableModel */
-    private void makeComponentsForResultSet(int onglet){
-	infosOnglets.elementAt(onglet).setModele(new QueryTableModel(infosOnglets.elementAt(onglet)));
-	JTable table = new JTable( infosOnglets.elementAt(onglet).getModele());
-	infosOnglets.elementAt(onglet).setTable(table);
+    private void makeComponentsForResultSet(Component onglet){
+	infosOnglets.get(onglet).setModele(new QueryTableModel(infosOnglets.get(onglet)));
+	JTable table = new JTable( infosOnglets.get(onglet).getModele());
+	infosOnglets.get(onglet).setTable(table);
 	table.setAutoCreateRowSorter(true);
 	table.getModel().addTableModelListener(this);
 	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -813,35 +815,34 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
     /* Crée un onglet dans le composant gérant les requêtes. 
        Renvoie l'index de l'onglet créé. */
-    private int makeTab(){
-	// Le composant est null car il n'est pas encore créé. On l'ajoute un peu plus loin.
-	infosOnglets.add(jtp_onglets.getTabCount(), new InfosOnglet(this, null));
-	jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), makePanelForTab());
-	ButtonTabComponent btc = null;
-	jtp_onglets.setTabComponentAt(jtp_onglets.getTabCount()-1, btc = new ButtonTabComponent(jtp_onglets, this));
-	infosOnglets.elementAt(jtp_onglets.getTabCount()-1).setTab(btc);
+    private Component makeTab(){
+	// Composant de l'onglet. Sert ensuite à traquer cet onglet, même s'il change d'index (suppression, mouvement, etc.)
+	ButtonTabComponent btc = new ButtonTabComponent(jtp_onglets, this);
+	infosOnglets.put(btc, new InfosOnglet(this, btc));
 
+	jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), makePanelForTab(btc));
+
+	jtp_onglets.setTabComponentAt(jtp_onglets.getTabCount()-1, btc);
 
 	/* De quoi accueillir le résultat de la requête qui sera exécutée dans ce nouvel onglet */
-	makeComponentsForResultSet(jtp_onglets.getTabCount()-1);
-	return jtp_onglets.getTabCount()-1;
+	makeComponentsForResultSet(btc); //jtp_onglets.getTabCount()-1);
+	return btc;//jtp_onglets.getTabCount()-1;
     }
 
     
     private void makeTabFromQuery(String query){
-	int onglet = makeTab();
-	infosOnglets.elementAt(onglet).getJETA().setText(query);	
+	Component onglet = makeTab();
+	infosOnglets.get(onglet).getJETA().setText(query);	
     }
 
     private void makeTabFromQuery(String query, String title){
-	int onglet = makeTab();
-	infosOnglets.elementAt(onglet).getJETA().setText(query);	
-	getQueryTabs().setTitleAt(onglet, title);
+	Component onglet = makeTab();
+	infosOnglets.get(onglet).getJETA().setText(query);	
+	getQueryTabs().setTitleAt(getQueryTabs().indexOfTabComponent(onglet), title);
     }
 
 
-    private JPanel makePanelForTab(){
-	int nbTabs = jtp_onglets.getTabCount();
+    private JPanel makePanelForTab(Component component){
 
 	/** Crée le contenu d'un onglet
 	    Crée le composant pour écrire les requêtes **/
@@ -853,7 +854,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
 	/** Enregistre le JEditTextArea pour pouvoir faire des opérations plus tard dessus **/
 	/* Pas nécessaire de faire nbTabs - 1 puisque l'onglet dont on stocke les infos n'est pas encore créé*/
-	infosOnglets.elementAt(nbTabs).setJETA(jeta_query);
+	infosOnglets.get(component).setJETA(jeta_query);
 
 	
 	/** Crée le JPanel dans lequel on met les composants de chaque onglet **/
@@ -867,7 +868,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	infosOnglets.remove(tab);
     }
 
-    public Vector<InfosOnglet> getInfosOnglets(){
+    public HashMap<Component, InfosOnglet> getInfosOnglets(){
 	return infosOnglets;
     }
 
@@ -1021,28 +1022,32 @@ class InfosOnglet {
     private AutoQuery app;
 
     /**
-     * Le composant dans l'onglet sert de pointeur vers l'onglet
+     * Describe onglet here.
      */
-    private Component tab;
-    JEditTextArea jeta; /* Quel est le JEditTextArea contenant la requête à exécuter */
+    private Component onglet;
 
     /**
-     * Get the <code>Tab</code> value.
+     * Get the <code>Onglet</code> value.
      *
      * @return a <code>Component</code> value
      */
-    public final Component getTab() {
-	return tab;
+    public final Component getOnglet() {
+	return onglet;
     }
 
     /**
-     * Set the <code>Tab</code> value.
+     * Set the <code>Onglet</code> value.
      *
-     * @param newTab The new Tab value.
+     * @param newOnglet The new Onglet value.
      */
-    public final void setTab(final Component newTab) {
-	this.tab = newTab;
+    public final void setOnglet(final Component newOnglet) {
+	this.onglet = newOnglet;
     }
+    /**
+     * Le composant dans l'onglet sert de pointeur vers l'onglet
+     */
+    JEditTextArea jeta; /* Quel est le JEditTextArea contenant la requête à exécuter */
+
 
 
     /**
@@ -1062,14 +1067,14 @@ class InfosOnglet {
     public final void setApp(final AutoQuery newApp) {
 	this.app = newApp;
     }
-    public InfosOnglet(AutoQuery app, Component tab) {
+    public InfosOnglet(AutoQuery app, Component onglet) {
 	this.app = app;
-	this.tab = tab;
+	this.onglet = onglet;
     }
 
     public String getTabTitle(){
-	System.out.println("Onglet d'indice " + app.getQueryTabs().indexOfTabComponent(tab));
-	return app.getQueryTabs().getTitleAt(app.getQueryTabs().indexOfTabComponent(tab));
+	JTabbedPane onglets = app.getQueryTabs();
+	return onglets.getTitleAt(onglets.indexOfTabComponent(onglet));
     }
 
     /**
