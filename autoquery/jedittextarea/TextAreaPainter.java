@@ -42,7 +42,8 @@ public class TextAreaPainter extends JComponent implements TabExpander
 
 		setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
 
-		setFont(new Font("Monospaced",Font.PLAIN,14));
+		//		setFont(new Font("Monospaced",Font.PLAIN,14));
+		setFont(new Font("Arial",Font.PLAIN,14)); // Ajout MAD
 		setForeground(Color.black);
 		setBackground(Color.white);
 
