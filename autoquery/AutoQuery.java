@@ -781,7 +781,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
     /** Renvoie le JEditTextArea sur l'onglet sélectionné **/
     private JEditTextArea getActiveJEditTextArea(){
-	return infosOnglets.get(jtp_onglets.getSelectedComponent()).getJETA();
+	return infosOnglets.get(jtp_onglets.getTabComponentAt(jtp_onglets.getSelectedIndex())).getJETA();
     }
 
     private void setActiveTable(JTable newJTable){
@@ -792,7 +792,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
     /** Renvoie le QueryTableModel correspondant à l'onglet sélectionné **/
     private QueryTableModel getActiveQueryTableModel(){
-	return infosOnglets.get(jtp_onglets.getSelectedComponent()).getModele();
+	return infosOnglets.get(jtp_onglets.getTabComponentAt(jtp_onglets.getSelectedIndex())).getModele();
     }
 
     public JTabbedPane getQueryTabs() {
