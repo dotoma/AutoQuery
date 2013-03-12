@@ -17,13 +17,13 @@ BUGS :
 	at java.lang.Thread.run(Thread.java:662)
 
 BUGS CORRIGÉS :
-- Pas d'affichage quand une seule ligne
+- pas d'affichage quand une seule ligne
 
 
 À FAIRE :
+- automatiquement préparer la dernière connexion
 - enregistrer les onglets quand on ferme
 - ajouter des liens vers ePP
-- défilement par roulette dans le JETA
 - changer la police dégueulasse (GBA)
 - numéroter les lignes (GBA)
 - encodage des requêtes ouvertes
@@ -42,7 +42,8 @@ BUGS CORRIGÉS :
   - distinction dans l'affichage entre 
       - le temps de récupération et 
       - le temps de mise en forme par le QueryTableModel
-- démarrage sans réseau : proposer un arbre  parmi des arbres sauvegardés 
+- proposer un démarrage offline
+   - proposer un arbre  parmi des arbres sauvegardés 
 - signets
 - historique
   - effacer l'historique  
@@ -56,6 +57,7 @@ BUGS CORRIGÉS :
    - possibilité de filtrer sur la colonne qu'on veut
 
 FAIT :
+- défilement par roulette dans le JETA
 - changer de position les onglets (AJS)
 - enlever les tilda roses dégueulasses (GBA)
 - indiquer le nombre de lignes dans le résultat de la requête (GBA)

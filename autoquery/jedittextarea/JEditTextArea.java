@@ -20,6 +20,7 @@ import java.util.Enumeration;
 import java.util.Vector;
 import autoquery.AutoQuery;
 
+
 /**
  * jEdit's text area component. It is more suited for editing program
  * source code than JEditorPane, because it drops the unnecessary features
@@ -65,6 +66,18 @@ public class JEditTextArea extends JComponent
 	public JEditTextArea()
 	{
 		this(TextAreaDefaults.getDefaults());
+		
+		/* Ajout MAD : permet de scroller dans le composant */
+		addMouseWheelListener(new MouseWheelListener(){
+			public void mouseWheelMoved(MouseWheelEvent e) {
+			    int nbLignes =  e.getWheelRotation();
+			    if (firstLine + nbLignes <= 0){
+				setFirstLine(0);
+			    } else if (firstLine + nbLignes >= getLineCount()){
+				setFirstLine(getLineCount()-1);
+			    } else setFirstLine(firstLine + nbLignes);
+			}
+		    });
 	}
 
 	/**
