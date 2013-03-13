@@ -74,7 +74,7 @@ public class DefaultInputHandler extends InputHandler
 		addKeyBinding("DOWN",NEXT_LINE);
 		addKeyBinding("S+DOWN",SELECT_NEXT_LINE);
 
-		addKeyBinding("C+ENTER",REPEAT);
+		//		addKeyBinding("C+ENTER",REPEAT); // Modification MAD afin que ce raccourci soit utilisable pour exécuter la requête
 
 		/* Ajouts MAD */
 		addKeyBinding("C+C",COPY);

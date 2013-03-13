@@ -19,6 +19,8 @@ import java.awt.*;
 import java.util.Enumeration;
 import java.util.Vector;
 import autoquery.AutoQuery;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
 
 
 /**
@@ -111,6 +113,32 @@ public class JEditTextArea extends JComponent
 		painter.addMouseListener(new MouseHandler());
 		painter.addMouseMotionListener(new DragHandler());
 		addFocusListener(new FocusHandler());
+		addKeyListener(new KeyListener() {
+			public final void keyPressed(final KeyEvent evt) {
+			    if(inputHandler == null)
+				return;
+			    AutoQuery app = AutoQuery.getAutoQueryParent(evt);
+
+			    /* Renvoie la touche à l'instance de AutoQuery. 
+			       Elle peut faire des traitements avant de rendre 
+			       la main à l'InputHandler */
+			    app.actionOnKey(evt);
+			    
+			    inputHandler.keyPressed(evt);
+			}
+
+			public final void keyReleased(final KeyEvent evt) {
+			    if(inputHandler == null)
+				return;
+			    inputHandler.keyReleased(evt);
+			}
+
+			public final void keyTyped(final KeyEvent evt) {
+			    if(inputHandler == null)
+				return;
+			    inputHandler.keyTyped(evt);
+			}
+		    });
 
 		// Load the defaults
 		setInputHandler(defaults.inputHandler);
@@ -1533,32 +1561,31 @@ public class JEditTextArea extends JComponent
 	 * This is slightly faster than using a KeyListener
 	 * because some Swing overhead is avoided.
 	 */
-	public void processKeyEvent(KeyEvent evt)
-	{
+	// public void processKeyEvent(KeyEvent evt)
+	// {
 
+	// 	if(inputHandler == null)
+	// 		return;
+	// 	switch(evt.getID())
+	// 	{
+	// 	case KeyEvent.KEY_TYPED:
+	// 		inputHandler.keyTyped(evt);
+	// 		break;
+	// 	case KeyEvent.KEY_PRESSED:
+	// 		AutoQuery app = AutoQuery.getAutoQueryParent(evt);
 
-		if(inputHandler == null)
-			return;
-		switch(evt.getID())
-		{
-		case KeyEvent.KEY_TYPED:
-			inputHandler.keyTyped(evt);
-			break;
-		case KeyEvent.KEY_PRESSED:
-			AutoQuery app = AutoQuery.getAutoQueryParent(evt);
+	// 		/* Renvoie la touche à l'instance de AutoQuery. 
+	// 		   Elle peut faire des traitements avant de rendre 
+	// 		   la main à l'InputHandler */
+	// 		app.actionOnKey(evt);
 
-			/* Renvoie la touche à l'instance de AutoQuery. 
-			   Elle peut faire des traitements avant de rendre 
-			   la main à l'InputHandler */
-			app.actionOnKey(evt);
-
-			inputHandler.keyPressed(evt);
-			break;
-		case KeyEvent.KEY_RELEASED:
-			inputHandler.keyReleased(evt);
-			break;
-		}
-	}
+	// 		inputHandler.keyPressed(evt);
+	// 		break;
+	// 	case KeyEvent.KEY_RELEASED:
+	// 		inputHandler.keyReleased(evt);
+	// 		break;
+	// 	}
+	// }
 
 	// protected members
 	protected static String CENTER = "center";

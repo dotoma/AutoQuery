@@ -46,6 +46,8 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.awt.KeyboardFocusManager;
+import java.awt.KeyEventDispatcher;
 
 /* SQL */
 import java.sql.ResultSet;
@@ -703,8 +705,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
 
 	/* Exécuter une requête */
-	JMenuItem menu_requete_executer = new JMenuItem("Exécuter", KeyEvent.VK_W);
-	menu_requete_executer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
+	JMenuItem menu_requete_executer = new JMenuItem("Exécuter", KeyEvent.VK_X);
+	menu_requete_executer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, ActionEvent.CTRL_MASK));
 	menu_requete_executer.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
 		    lm_historique.addElement(getActiveJEditTextArea().getText());
@@ -724,7 +726,24 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	setTitle(makeFrameTitle());
 	pack();
 	setVisible(true);
+
+	/* Gestion des raccourcis ici */
+	// KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+	// kfm.addKeyEventDispatcher( new KeyEventDispatcher() {
+	// 	@Override
+	// 	public boolean dispatchKeyEvent(KeyEvent e) {
+	// 	    KeyStroke keyStroke = KeyStroke.getKeyStrokeForEvent(e);
+	// 	    if (keyStroke == KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK)){
+			
+	// 	    }
+	// 	    getActiveJEditTextArea().processKeyEvent(e);
+	// 	    return true;
+	// 	}
+	//     });
+	
+
     }
+
 
     /** Donne un titre à l'application **/
     private String makeFrameTitle(){

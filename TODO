@@ -33,7 +33,6 @@ BUGS CORRIGÉS :
 - trouver les occurrences de la sélection (à la Notepad++) (AJS)
 - tri des colonnes pas par ordre alphabétique mais par ordre numérique
 - possibilité d'exécuter les requêtes
-  - raccourci clavier (AJS/GBA)
   - export en CSV
   - export CSV sans affichage dans le ResultSet
   - enregistrement pour Excel
@@ -56,6 +55,7 @@ BUGS CORRIGÉS :
    - possibilité de filtrer sur la colonne qu'on veut
 
 FAIT :
+- raccourcis utilisables (GBA/AJS)
 - changer la police dégueulasse (GBA)
 - défilement par roulette dans le JETA
 - changer de position les onglets (AJS)
