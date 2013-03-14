@@ -139,12 +139,9 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
     public void actionOnKey(KeyEvent evt){
 	if (evt.getKeyCode() == KeyEvent.VK_TAB){
 	    this.actionOnKeyTAB();
-	} else if (evt.getKeyCode() == KeyEvent.VK_R && evt.getKeyModifiersText(evt.getModifiers()).equals("Ctrl") ) {	
-	    resetKeyTABCount();
-	    this.looksForAnAliasAndCreate();
 	} else {
 	    resetKeyTABCount();
-	    status_bar.showStatus("");
+	    status_bar.clear();
 	}
     }
 
@@ -201,6 +198,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
     private void actionOnKeyTAB(){
 	JEditTextArea jeta_query = getActiveJEditTextArea();
+	
 	increaseKeyTABCount();
 	if (getKeyTABCount() <= 1){ /* Une fois TAB appuyé */
 	    String s_query = jeta_query.getText().replace("\n", " ").replace("\r", " ");
@@ -671,7 +669,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	JMenu menu_requete = new JMenu("Requête");
 	
 	/* Ouvrir un fichier */
-	final JMenuItem menu_requete_ouvrir = new JMenuItem("Ouvrir...");
+	final JMenuItem menu_requete_ouvrir = new JMenuItem("Ouvrir...", KeyEvent.VK_O);
 	menu_requete_ouvrir.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 	menu_requete_ouvrir.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
@@ -717,6 +715,18 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 		}
 	    });
 	menu_requete.add(menu_requete_executer);
+
+	/* Ajouter un alias */
+	JMenuItem menu_requete_alias = new JMenuItem("Ajouter un alias", KeyEvent.VK_S);
+	menu_requete_alias.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK));
+	menu_requete_alias.addActionListener(new ActionListener(){
+		public void actionPerformed(ActionEvent e){
+		    resetKeyTABCount();
+		    looksForAnAliasAndCreate();
+		}
+	    });
+	menu_requete.add(menu_requete_alias);
+
 
 
 	/* Ajout du menu à la fenêtre */
@@ -1028,6 +1038,10 @@ class StatusBar extends JPanel
 
     public void showStatus(String from, String status) {
 	showStatus(from + " : " + status);
+    }
+
+    public void clear(){
+	showStatus("");
     }
 
 }

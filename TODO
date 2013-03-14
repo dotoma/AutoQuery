@@ -1,4 +1,5 @@
 BUGS :
+- complétion des alias marche plus
 - le menu contextuel de complétion a des affichages fantaisistes
 - les grosses requêtes font éclater la mémoire :
    ATTENTION: Exception on Toolkit thread
@@ -21,48 +22,62 @@ BUGS CORRIGÉS :
 
 
 À FAIRE :
-- automatiquement préparer la dernière connexion
-- enregistrer les onglets quand on ferme
-- ajouter des liens vers ePP
+- chrono dans le titre de l'onglet pour connaître le temps d'une requête (MAD)
+- proposer des squelettes de requêtes (MAD)
+   - SELECT * FROM WHERE (MAD)
+   - SELECT * FROM WHERE LIMIT 1000 (MAD)
+   - SELECT * FROM () (MAD)
+- alias de sous-requête (MAD)
+- détecte les fautes de syntaxes grossières (MAD)
+   - virgule avant le FROM (MAD)
+   - champ/table/schéma n'existe pas (MAD)
+   - parenthèses non appariées (MAD)
+- TAB en début de ligne fait une tabulation (MAD)
+- retour à la ligne indente comme la ligne supérieure (MAD)
+- automatiquement préparer la dernière connexion (MAD)
+- enregistrer les onglets quand on ferme (MAD)
+- ajouter des liens vers ePP (MAD)
 - numéroter les lignes (GBA)
 - encodage des requêtes ouvertes
    - problème du caractère invisible dû à QueryBrowser (GBA)
-- menu "Quelle version ?"
-- highlight matching parenthesis (à la EMACS)
+- menu "Quelle version ?" (MAD)
+- highlight matching parenthesis (à la EMACS) (MAD)
 - grouper les lignes d'une sous-requête (à la Eclipse) (AJS)
 - trouver les occurrences de la sélection (à la Notepad++) (AJS)
-- tri des colonnes pas par ordre alphabétique mais par ordre numérique
+- tri des colonnes pas par ordre alphabétique mais par ordre numérique (MAD)
 - possibilité d'exécuter les requêtes
-  - export en CSV
-  - export CSV sans affichage dans le ResultSet
-  - enregistrement pour Excel
-  - affichage du temps d'exécution pendant l'exécution
-  - distinction dans l'affichage entre 
+  - export en CSV (MAD)
+  - export CSV sans affichage dans le ResultSet (MAD)
+  - enregistrement pour Excel (GBA)
+  - affichage du temps d'exécution pendant l'exécution (MAD)
+  - distinction dans l'affichage entre  (MAD)
       - le temps de récupération et 
       - le temps de mise en forme par le QueryTableModel
-- proposer un démarrage offline
-   - proposer un arbre  parmi des arbres sauvegardés 
-- signets
-- historique
-  - effacer l'historique  
-  - sauvegarder historique et séparer par jour
-- recherche de champs/tables dans l'arbre à droite
-- icône pour l'application 
-- refresh automatique sur les requêtes des onglets (toutes les x minutes)
+- proposer un démarrage offline (MAD)
+   - proposer un arbre  parmi des arbres sauvegardés  (MAD)
+- signets (MAD)
+- historique (MAD)
+  - effacer l'historique (GBA)
+  - sauvegarder historique et séparer par jour (MAD)
+- recherche de champs/tables dans l'arbre à droite (MAD)
+- icône pour l'application  (MAD)
+- refresh automatique sur les requêtes des onglets (toutes les x minutes) (MAD)
 - menu contextuel sur colonne résultat :
-   - afficher la table correspondante : ID_REF_TABLE -> affiche REF_TABLE
+   - afficher la table correspondante : ID_REF_TABLE -> affiche REF_TABLE (MAD)
 - une fois les résultats dans la JTable
-   - possibilité de filtrer sur la colonne qu'on veut
+   - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
-- raccourcis utilisables (GBA/AJS)
+- ajouter END aux mots-clefs (MAD)
+- ajouter le menu "Ajouter un alias" sur CTRL+R (MAD)
+- raccourcis clavier utilisables (GBA/AJS)
 - changer la police dégueulasse (GBA)
 - défilement par roulette dans le JETA
 - changer de position les onglets (AJS)
 - enlever les tilda roses dégueulasses (GBA)
 - indiquer le nombre de lignes dans le résultat de la requête (GBA)
-- tout sélectionner (GBA)
-- aller au nouvel onglet (GBA)
+- tout sélectionner par CTRL+A (GBA)
+- sauter au nouvel onglet (GBA)
 - indiquer les paramètres de connexion dans le titre
 - menu "ouvrir une requête" (GBA)
 - look and feel de l'OS 

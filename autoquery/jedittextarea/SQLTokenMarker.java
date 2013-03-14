@@ -100,6 +100,7 @@ public class SQLTokenMarker extends TokenMarker
 	    sqlKeywords.add("DROP", Token.KEYWORD2);
 	    sqlKeywords.add("DUAL", Token.KEYWORD2);
 	    sqlKeywords.add("EACH", Token.KEYWORD2);
+	    sqlKeywords.add("END", Token.KEYWORD2);
 	    sqlKeywords.add("ELSE", Token.KEYWORD2);
 	    sqlKeywords.add("ELSEIF", Token.KEYWORD2);
 	    sqlKeywords.add("ENCLOSED", Token.KEYWORD2);
