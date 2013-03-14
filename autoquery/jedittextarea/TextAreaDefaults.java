@@ -72,7 +72,7 @@ public class TextAreaDefaults
 			DEFAULTS.selectionColor = new Color(0xccccff);
 			DEFAULTS.lineHighlightColor = new Color(0xe0e0e0);
 			DEFAULTS.lineHighlight = true;
-			DEFAULTS.bracketHighlightColor = Color.black;
+			DEFAULTS.bracketHighlightColor = Color.red; //Color.black; Modification MAD
 			DEFAULTS.bracketHighlight = true;
 			DEFAULTS.eolMarkerColor = new Color(0x009999);
 			DEFAULTS.eolMarkers = true;
