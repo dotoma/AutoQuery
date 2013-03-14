@@ -31,7 +31,6 @@ BUGS CORRIGÉS :
 - détecte les fautes de syntaxes grossières (MAD)
    - virgule avant le FROM (MAD)
    - champ/table/schéma n'existe pas (MAD)
-   - parenthèses non appariées (MAD)
 - retour à la ligne indente comme la ligne supérieure (MAD)
 - automatiquement préparer la dernière connexion (MAD)
 - enregistrer les onglets quand on ferme (MAD)
@@ -40,7 +39,6 @@ BUGS CORRIGÉS :
 - encodage des requêtes ouvertes
    - problème du caractère invisible dû à QueryBrowser (GBA)
 - menu "Quelle version ?" (MAD)
-- highlight matching parenthesis (à la EMACS) (MAD)
 - grouper les lignes d'une sous-requête (à la Eclipse) (AJS)
 - trouver les occurrences de la sélection (à la Notepad++) (AJS)
 - tri des colonnes pas par ordre alphabétique mais par ordre numérique (MAD)
@@ -67,6 +65,9 @@ BUGS CORRIGÉS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- détecte les fautes de syntaxes grossières (MAD)
+   - parenthèses non appariées (MAD)
+- highlight matching parenthesis (à la EMACS) (MAD)
 - TAB en début de ligne fait une tabulation (MAD)
 - ajouter END aux mots-clefs (MAD)
 - ajouter le menu "Ajouter un alias" sur CTRL+R (MAD)

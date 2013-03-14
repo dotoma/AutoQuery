@@ -98,6 +98,9 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	AutoQuery app = new AutoQuery(args);
     }
 
+    private static final String MESSAGE_TROP_PARENTHESES_FERMANTES = "Erreur de syntaxe : trop de parenthèses fermantes.";
+    private static final String MESSAGE_TROP_PARENTHESES_OUVRANTES = "Erreur de syntaxe : trop de parenthèses ouvrantes.";
+
     /* Variables */
     private int keyTABCount = 0;
     private HashMap<Component, InfosOnglet> infosOnglets = new HashMap<Component, InfosOnglet>();
@@ -203,6 +206,37 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	String s_suff = jeta_query.getText().substring(i_CaretPosition);
 	jeta_query.setText(s_pref + s + s_suff);
 	jeta_query.setCaretPosition( s_pref.length() + s.length());
+    }
+
+    /* Vérifie qu'il n'y a pas de problèmes de parenthésage */
+    private boolean existUnmatchedParentheses(){
+	JEditTextArea j = getActiveJEditTextArea();
+	String s = j.getText();
+	int parenthesesCount = 0;
+	if (s.length() > 0){
+	    for (int i = 0; i < s.length() ; i++ ){
+		if (s.charAt(i) == '('){
+		    parenthesesCount++;
+		} else if (s.charAt(i) == ')'){
+		    parenthesesCount--;
+		    if (parenthesesCount < 0){
+			showStatus(getQueryTabs().getTitleAt(jtp_onglets.getSelectedIndex()),
+				   MESSAGE_TROP_PARENTHESES_FERMANTES);
+			return true;
+		    }
+		}
+	    }
+	    if (parenthesesCount > 0){
+		showStatus(getQueryTabs().getTitleAt(jtp_onglets.getSelectedIndex()),
+			   MESSAGE_TROP_PARENTHESES_OUVRANTES);
+		return true;
+	    } else if (parenthesesCount < 0){
+		showStatus(getQueryTabs().getTitleAt(jtp_onglets.getSelectedIndex()),
+			   MESSAGE_TROP_PARENTHESES_OUVRANTES);
+		return true;
+	    }
+	} 
+	return false;
     }
 
     private void actionOnKeyTAB(){
@@ -732,11 +766,16 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	menu_requete_executer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, ActionEvent.CTRL_MASK));
 	menu_requete_executer.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
-		    lm_historique.addElement(getActiveJEditTextArea().getText());
-		    if (!jb_historique.isEnabled()){
-			jb_historique.setEnabled(true);
+		    /* Vérifications syntaxiques avant de solliciter le serveur 
+		       - Parenthésage          --- FAIT
+		       - Virgule avant le FROM --- À FAIRE */
+		    if (! existUnmatchedParentheses()){ // Test du parenthésage
+			lm_historique.addElement(getActiveJEditTextArea().getText());
+			if (!jb_historique.isEnabled()){
+			    jb_historique.setEnabled(true);
+			}
+			executeRequeteOngletActif();
 		    }
-		    executeRequeteOngletActif();
 		}
 	    });
 	menu_requete.add(menu_requete_executer);
