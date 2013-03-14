@@ -196,9 +196,34 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	}
     }
 
+    private void insertTextAtCaret(final String s){
+	JEditTextArea jeta_query = getActiveJEditTextArea();
+	int i_CaretPosition = jeta_query.getCaretPosition();
+	String s_pref = jeta_query.getText().substring(0, i_CaretPosition);
+	String s_suff = jeta_query.getText().substring(i_CaretPosition);
+	jeta_query.setText(s_pref + s + s_suff);
+	jeta_query.setCaretPosition( s_pref.length() + s.length());
+    }
+
     private void actionOnKeyTAB(){
 	JEditTextArea jeta_query = getActiveJEditTextArea();
+
+	/* Vérifie si la tabulation doit être interprétée comme une tabulation 
+	   ou comme une demande de complétion */
+	int ligneCourante = jeta_query.getCaretLine();
+	int offsetDebut = jeta_query.getLineStartOffset(ligneCourante);
+	int offsetCaret = jeta_query.getCaretPosition();
+	String debut_ligne = jeta_query.getText(offsetDebut,
+						offsetCaret - offsetDebut);
+	// System.out.println("Début de ligne : '" + debut_ligne + "'");
+	String debut_ligne_remplacements = debut_ligne.replace("\t", "").replace(" ","");
 	
+	if (debut_ligne_remplacements.length() == 0){ // Si la ligne débute par du vide
+	    // Ajoute une tabulation là où se trouve le caret et ne fait pas de complétion
+	    insertTextAtCaret("\t");
+	    return;
+	}
+			   
 	increaseKeyTABCount();
 	if (getKeyTABCount() <= 1){ /* Une fois TAB appuyé */
 	    String s_query = jeta_query.getText().replace("\n", " ").replace("\r", " ");
@@ -216,64 +241,64 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
 
 		/* Compte le nombre de points pour savoir s'il faut compléter un nom de schéma, de table ou de champ */
-		int dotCount = s_extract.replaceAll("[^.]", "").length();
-		System.out.println("Nombre de points : " + dotCount);
+	    int dotCount = s_extract.replaceAll("[^.]", "").length();
+	    System.out.println("Nombre de points : " + dotCount);
 	    
-		String s_insert = null;
-		String s_schema = null;
-		String s_to_complete = null;
-		String s_table = null;
+	    String s_insert = null;
+	    String s_schema = null;
+	    String s_to_complete = null;
+	    String s_table = null;
 
-		switch(dotCount){
-		case 0: 
-		    System.out.println("Complétion de schéma");
-		    s_to_complete = s_extract;
-		    s_insert = complete(tm_arborescence_BDD, s_to_complete);
-		    if (s_insert == null){ // Si ce n'est pas un schéma qu'il faut chercher mais un alias
-			System.out.println("Pas de schéma trouvé commençant par " + s_to_complete);
-			System.out.println("Recherche d'un alias correspondant");
-			s_insert = complete( (SortedMap) tm_alias, s_to_complete);
-			if (s_insert == null){ // Si ce n'est pas non plus un début d'alias, on empeche la complétion
-			    this.resetKeyTABCount();
-			}
-			    
+	    switch(dotCount){
+	    case 0: 
+		System.out.println("Complétion de schéma");
+		s_to_complete = s_extract;
+		s_insert = complete(tm_arborescence_BDD, s_to_complete);
+		if (s_insert == null){ // Si ce n'est pas un schéma qu'il faut chercher mais un alias
+		    System.out.println("Pas de schéma trouvé commençant par " + s_to_complete);
+		    System.out.println("Recherche d'un alias correspondant");
+		    s_insert = complete( (SortedMap) tm_alias, s_to_complete);
+		    if (s_insert == null){ // Si ce n'est pas non plus un début d'alias, on empeche la complétion
+			this.resetKeyTABCount();
 		    }
-
-		    System.out.println("Cherche à insérer : " + s_insert);
-		    break;
-		case 1:
-		    System.out.println("Complétion de table");
-		    s_schema = extract(s_extract, 1);
-		    s_to_complete = extract(s_extract, 2);
-		    if (s_to_complete != null){
-			s_insert = (tm_arborescence_BDD.containsKey(s_schema)) ? complete(tm_arborescence_BDD.get(s_schema), s_to_complete) : null;
-			if (s_insert == null && tm_alias.containsKey(s_schema)){ // Si ce n'est pas une table qu'il faut chercher mais un champ
-			    s_insert = complete( (SortedSet) tm_alias.get(s_schema), s_to_complete);
-			}
 		    
-		    }
-		    System.out.println("Cherche à insérer : " + s_insert);
-		    break;
-		case 2:
-		    System.out.println("Complétion du champ");
-		    s_schema = extract(s_extract, 1);
-		    s_table = extract(s_extract, 2);
-		    s_to_complete = extract(s_extract, 3);
-		    s_insert = complete((SortedSet) tm_arborescence_BDD.get(s_schema).get(s_table), s_to_complete);
-		    System.out.println("Cherche à insérer : " + s_insert + " à partir de " + s_to_complete);
-		    break;		
 		}
-
-		if (s_insert != null){ /* Si s_insert est bien le préfixe d'un schéma, d'un alias, d'une table ou d'un champ*/
-		    jeta_query.setSelectedText(s_insert.substring(s_to_complete.length()));
-		    jeta_query.setCaretPosition( jeta_query.getText().length() - (s_query.length() - i_caret)); // Remet le curseur où il était avant la complétion
-		    if (s_insert.length() == s_to_complete.length()) { // Si on n'insère rien parce qu'il y a plusieurs possibilités
-			resetKeyTABCount(); // Remet le compteur de TAB à zéro puisqu'il y a eu une complétion
+		
+		System.out.println("Cherche à insérer : " + s_insert);
+		break;
+	    case 1:
+		System.out.println("Complétion de table");
+		s_schema = extract(s_extract, 1);
+		s_to_complete = extract(s_extract, 2);
+		if (s_to_complete != null){
+		    s_insert = (tm_arborescence_BDD.containsKey(s_schema)) ? complete(tm_arborescence_BDD.get(s_schema), s_to_complete) : null;
+		    if (s_insert == null && tm_alias.containsKey(s_schema)){ // Si ce n'est pas une table qu'il faut chercher mais un champ
+			s_insert = complete( (SortedSet) tm_alias.get(s_schema), s_to_complete);
 		    }
-		}	    
-		System.out.println("TAB appuyé");
-
-
+		    
+		}
+		System.out.println("Cherche à insérer : " + s_insert);
+		break;
+	    case 2:
+		System.out.println("Complétion du champ");
+		s_schema = extract(s_extract, 1);
+		s_table = extract(s_extract, 2);
+		s_to_complete = extract(s_extract, 3);
+		s_insert = complete((SortedSet) tm_arborescence_BDD.get(s_schema).get(s_table), s_to_complete);
+		System.out.println("Cherche à insérer : " + s_insert + " à partir de " + s_to_complete);
+		break;		
+	    }
+	    
+	    if (s_insert != null){ /* Si s_insert est bien le préfixe d'un schéma, d'un alias, d'une table ou d'un champ*/
+		jeta_query.setSelectedText(s_insert.substring(s_to_complete.length()));
+		jeta_query.setCaretPosition( jeta_query.getText().length() - (s_query.length() - i_caret)); // Remet le curseur où il était avant la complétion
+		if (s_insert.length() == s_to_complete.length()) { // Si on n'insère rien parce qu'il y a plusieurs possibilités
+		    resetKeyTABCount(); // Remet le compteur de TAB à zéro puisqu'il y a eu une complétion
+		}
+	    }	    
+	    System.out.println("TAB appuyé");
+	    
+	    
 	} else { /* Plus d'une fois TAB appuyé */
 	    System.out.println("TAB appuyé deux fois");
 	    if (popup != null){

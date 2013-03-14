@@ -32,7 +32,6 @@ BUGS CORRIGÉS :
    - virgule avant le FROM (MAD)
    - champ/table/schéma n'existe pas (MAD)
    - parenthèses non appariées (MAD)
-- TAB en début de ligne fait une tabulation (MAD)
 - retour à la ligne indente comme la ligne supérieure (MAD)
 - automatiquement préparer la dernière connexion (MAD)
 - enregistrer les onglets quand on ferme (MAD)
@@ -68,6 +67,7 @@ BUGS CORRIGÉS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- TAB en début de ligne fait une tabulation (MAD)
 - ajouter END aux mots-clefs (MAD)
 - ajouter le menu "Ajouter un alias" sur CTRL+R (MAD)
 - raccourcis clavier utilisables (GBA/AJS)
