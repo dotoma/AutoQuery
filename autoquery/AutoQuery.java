@@ -256,6 +256,9 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
     ou des espaces. Renvoie faux sinon. */
     private boolean existsCommaBeforeFROM() {
 	String s = getActiveJEditTextArea().getText();
+	/* Aller sur la page suivante pour tous les motifs utilisables 
+	   dans une expression régulière JAVA :
+	   http://docs.oracle.com/javase/1.4.2/docs/api/java/util/regex/Pattern.html#sum */ 
 	boolean exists = s.matches(".*,\\s*FROM\\s.*");
 
 	if (exists){
@@ -757,7 +760,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	JMenu menu_requete = new JMenu("Requête");
 	
 	/* Charger une Requête */
-	final JMenuItem menu_requete_ouvrir = new JMenuItem("Charger...", KeyEvent.VK_O);
+	final JMenuItem menu_requete_ouvrir = new JMenuItem("Charger...", KeyEvent.VK_C);
 	menu_requete_ouvrir.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 	menu_requete_ouvrir.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
@@ -792,8 +795,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
 	/* Sauvegarder une requête */
 	final JMenuItem menu_requete_sauver = new JMenuItem("Sauver...", KeyEvent.VK_S);
-	menu_requete_ouvrir.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
-	menu_requete_ouvrir.addActionListener(new ActionListener(){
+	menu_requete_sauver.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+	menu_requete_sauver.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
 		    
 		    /** Ouverture d'une boîte de dialogue de choix de fichier **/
@@ -838,6 +841,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	    });
 	menu_requete.add(menu_requete_executer);
 
+
 	/* Ajouter un alias */
 	JMenuItem menu_requete_alias = new JMenuItem("Ajouter un alias", KeyEvent.VK_S);
 	menu_requete_alias.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK));
@@ -848,6 +852,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 		}
 	    });
 	menu_requete.add(menu_requete_alias);
+
+
 
 
 

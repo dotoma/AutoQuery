@@ -28,7 +28,8 @@ public class LoginDialog extends JDialog {
     private JComboBox jcb_profiles;
     Preferences prefs_profiles;
 
-    private static final String PROFILES = "connection_profiles";
+    private static final String PROFILES_NODE = "connection_profiles";
+    private static final String LAST_CONNECTION_PARAMETERS_NODE = "last_parameters";
     private static final String HOST = "host";
     private static final String PORT = "port";
     private static final String USERNAME = "username";
@@ -37,7 +38,7 @@ public class LoginDialog extends JDialog {
         super(parent, "Gestionnaire de connexion", true);
         
 	Preferences node_login_dialog = Preferences.userNodeForPackage(LoginDialog.class);
-	prefs_profiles = node_login_dialog.node(PROFILES);
+	prefs_profiles = node_login_dialog.node(PROFILES_NODE);
 
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints cs = new GridBagConstraints();
@@ -69,9 +70,7 @@ public class LoginDialog extends JDialog {
 		    JComboBox cb = (JComboBox) ae.getSource();
 		    String profileName = (String) cb.getSelectedItem();
 		    Preferences this_profile = prefs_profiles.node(profileName);
-		    tfHost.setText(this_profile.get(HOST, ""));
-		    tfPort.setText(this_profile.get(PORT, ""));
-		    tfUsername.setText(this_profile.get(USERNAME, ""));
+		    fillFormWithParametersAtNode(this_profile);
 		}
 	    });
 
@@ -133,6 +132,10 @@ public class LoginDialog extends JDialog {
         panel.add(pfPassword, cs);
         
         
+	/* Remplit les paramètres de connexion avec ceux de la dernière connexion s'ils sont disponibles */
+	fillFormWithParametersAtNode(node_login_dialog.node(LAST_CONNECTION_PARAMETERS_NODE));
+
+
         panel.setBorder(new LineBorder(Color.GRAY));
  
         btnLogin = new JButton("Login");
@@ -148,6 +151,7 @@ public class LoginDialog extends JDialog {
             	    	    System.out.println("Connexion...");
             	    	    final String url = "jdbc:mysql://" + getHost() + ":" + getPort();
             	    	    con = DriverManager.getConnection(url, getUsername(), getPassword());
+			    saveLastConnectionParameters();
             	    	    succeeded = true;
              	    } catch (Exception e){
             	    	    System.err.println("Exception : " + e.getMessage());
@@ -206,10 +210,24 @@ public class LoginDialog extends JDialog {
  
     private void saveConnectionProfile(String connectionProfileName){
 	this.nomConnexion = connectionProfileName;
-	Preferences this_profile = prefs_profiles.node(connectionProfileName);
-	this_profile.put(HOST, getHost());
-	this_profile.put(PORT, getPort());
-	this_profile.put(USERNAME, getUsername());
+	saveConnectionParametersAtNode(prefs_profiles.node(connectionProfileName));
+    }
+
+    private void saveLastConnectionParameters(){
+	Preferences node_login_dialog = Preferences.userNodeForPackage(LoginDialog.class);
+	saveConnectionParametersAtNode(node_login_dialog.node(LAST_CONNECTION_PARAMETERS_NODE));
+    }
+
+    private void saveConnectionParametersAtNode(Preferences node){
+	node.put(HOST, getHost());
+	node.put(PORT, getPort());
+	node.put(USERNAME, getUsername());
+    }
+
+    private void fillFormWithParametersAtNode(Preferences node){
+	tfHost.setText(node.get(HOST, ""));
+	tfPort.setText(node.get(PORT, ""));
+	tfUsername.setText(node.get(USERNAME, ""));
     }
     
     public boolean loginSucceeded() {

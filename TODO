@@ -22,6 +22,7 @@ BUGS CORRIGÉS :
 
 
 À FAIRE :
+- différences entre deux résultats de requêtes
 - chrono dans le titre de l'onglet pour connaître le temps d'une requête (MAD)
 - proposer des squelettes de requêtes (MAD)
    - SELECT * FROM WHERE (MAD)
@@ -31,7 +32,6 @@ BUGS CORRIGÉS :
 - détecte les fautes de syntaxes grossières (MAD)
    - champ/table/schéma n'existe pas (MAD)
 - enter indente comme la ligne supérieure (MAD) --- Pas sûr de vouloir en fait
-- automatiquement préparer la dernière connexion (MAD)
 - enregistrer les onglets quand on ferme (MAD)
 - ajouter des liens vers ePP (MAD)
 - numéroter les lignes (GBA)
@@ -64,6 +64,7 @@ BUGS CORRIGÉS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- automatiquement préparer la dernière connexion (MAD)
 - sauvegarder une requête (MAD)
 - détecte les fautes de syntaxes grossières (MAD)
    - parenthèses non appariées (MAD)
