@@ -84,6 +84,8 @@ import autoquery.jedittextarea.*;
  * @version 1.0
  */
 public class AutoQuery extends JFrame implements ActionListener, TableModelListener{
+    private final static String VERSION = "0.50.0";
+
     public static void main(String args[]){
 
 	/* Dessine l'interface en suivant les précepts de l'OS hôte */
@@ -854,6 +856,20 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	menu_requete.add(menu_requete_alias);
 
 
+	/** Menu Aide **/
+	JMenu menu_aide = new JMenu("Aide");
+
+
+	JMenuItem menu_version = new JMenuItem("Verion...");
+	menu_version.addActionListener(new ActionListener(){
+		public void actionPerformed(ActionEvent ae){
+		    JOptionPane.showMessageDialog((Component) AutoQuery.this, 
+						  "Version " + VERSION,
+						  "Version de AutoQuery",
+						  JOptionPane.INFORMATION_MESSAGE);
+		}
+	    });
+	menu_aide.add(menu_version);
 
 
 

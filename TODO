@@ -37,7 +37,6 @@ BUGS CORRIGÉS :
 - numéroter les lignes (GBA)
 - encodage des requêtes ouvertes
    - problème du caractère invisible dû à QueryBrowser (GBA)
-- menu "Quelle version ?" (MAD)
 - grouper les lignes d'une sous-requête (à la Eclipse) (AJS)
 - trouver les occurrences de la sélection (à la Notepad++) (AJS)
 - tri des colonnes pas par ordre alphabétique mais par ordre numérique (MAD)
@@ -64,6 +63,7 @@ BUGS CORRIGÉS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- menu "Quelle version ?" (MAD)
 - automatiquement préparer la dernière connexion (MAD)
 - sauvegarder une requête (MAD)
 - détecte les fautes de syntaxes grossières (MAD)
