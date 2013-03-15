@@ -41,7 +41,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JFileChooser;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import java.io.IOException;
@@ -75,6 +77,12 @@ import javax.swing.event.ChangeEvent;
 import autoquery.jedittextarea.*;
 
 
+/**
+ * Describe class <code>AutoQuery</code> here.
+ *
+ * @author <a href="mailto:mad@portable-MAD">Marc Autord</a>
+ * @version 1.0
+ */
 public class AutoQuery extends JFrame implements ActionListener, TableModelListener{
     public static void main(String args[]){
 
@@ -98,8 +106,9 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	AutoQuery app = new AutoQuery(args);
     }
 
-    private static final String MESSAGE_TROP_PARENTHESES_FERMANTES = "Erreur de syntaxe : trop de parenthèses fermantes.";
-    private static final String MESSAGE_TROP_PARENTHESES_OUVRANTES = "Erreur de syntaxe : trop de parenthèses ouvrantes.";
+    private static final String MESSAGE_TROP_PARENTHESES_FERMANTES = "Erreur de syntaxe : trop de parenthèses fermantes";
+    private static final String MESSAGE_TROP_PARENTHESES_OUVRANTES = "Erreur de syntaxe : trop de parenthèses ouvrantes";
+    private static final String MESSAGE_VIRGULE_AVANT_FROM = "Erreur de syntaxe : virgule avant mot-clef FROM";
 
     /* Variables */
     private int keyTABCount = 0;
@@ -208,7 +217,9 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	jeta_query.setCaretPosition( s_pref.length() + s.length());
     }
 
-    /* Vérifie qu'il n'y a pas de problèmes de parenthésage */
+    /* Vérifie qu'il n'y a pas de problèmes de parenthésage 
+     true : problèmes de parenthésages
+     false : le parentésage est équilibré */
     private boolean existUnmatchedParentheses(){
 	JEditTextArea j = getActiveJEditTextArea();
 	String s = j.getText();
@@ -238,6 +249,24 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	} 
 	return false;
     }
+
+
+    /* Renvoie vrai s'il existe un FROM précédé d'une virgule, même s'il
+     y a des caractères invisibles comme des passages à la ligne ou des tabulations
+    ou des espaces. Renvoie faux sinon. */
+    private boolean existsCommaBeforeFROM() {
+	String s = getActiveJEditTextArea().getText();
+	boolean exists = s.matches(".*,\\s*FROM\\s.*");
+
+	if (exists){
+	    showStatus(getQueryTabs().getTitleAt(jtp_onglets.getSelectedIndex()), 
+		       MESSAGE_VIRGULE_AVANT_FROM);
+	    
+	}
+
+	return exists; 
+    }
+
 
     private void actionOnKeyTAB(){
 	JEditTextArea jeta_query = getActiveJEditTextArea();
@@ -727,8 +756,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	/** Menu Requête **/
 	JMenu menu_requete = new JMenu("Requête");
 	
-	/* Ouvrir un fichier */
-	final JMenuItem menu_requete_ouvrir = new JMenuItem("Ouvrir...", KeyEvent.VK_O);
+	/* Charger une Requête */
+	final JMenuItem menu_requete_ouvrir = new JMenuItem("Charger...", KeyEvent.VK_O);
 	menu_requete_ouvrir.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 	menu_requete_ouvrir.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent e){
@@ -761,6 +790,34 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	menu_requete.add(menu_requete_ouvrir);
 
 
+	/* Sauvegarder une requête */
+	final JMenuItem menu_requete_sauver = new JMenuItem("Sauver...", KeyEvent.VK_S);
+	menu_requete_ouvrir.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+	menu_requete_ouvrir.addActionListener(new ActionListener(){
+		public void actionPerformed(ActionEvent e){
+		    
+		    /** Ouverture d'une boîte de dialogue de choix de fichier **/
+		    final JFileChooser fc = new JFileChooser();
+		    int returnVal = fc.showOpenDialog(menu_requete_sauver);
+		    
+		    if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File inFile = fc.getSelectedFile();
+			try {
+			    FileWriter fr = new FileWriter(inFile);
+			    BufferedWriter bufWtr = new BufferedWriter(fr);
+                    	    bufWtr.write(getActiveJEditTextArea().getText());
+			    bufWtr.close();
+			} catch (IOException ioex) {
+			    System.err.println("Erreur lors de la sauvegarde du fichier.");
+			    System.err.println(ioex);
+			}
+		    }
+		}
+	    });
+	menu_requete.add(menu_requete_sauver);
+
+
+
 	/* Exécuter une requête */
 	JMenuItem menu_requete_executer = new JMenuItem("Exécuter", KeyEvent.VK_X);
 	menu_requete_executer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, ActionEvent.CTRL_MASK));
@@ -768,8 +825,9 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 		public void actionPerformed(ActionEvent e){
 		    /* Vérifications syntaxiques avant de solliciter le serveur 
 		       - Parenthésage          --- FAIT
-		       - Virgule avant le FROM --- À FAIRE */
-		    if (! existUnmatchedParentheses()){ // Test du parenthésage
+		       - Virgule avant le FROM --- FAIT */
+		    if (   ! existUnmatchedParentheses() 
+			&& ! existsCommaBeforeFROM()){ 
 			lm_historique.addElement(getActiveJEditTextArea().getText());
 			if (!jb_historique.isEnabled()){
 			    jb_historique.setEnabled(true);
