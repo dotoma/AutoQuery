@@ -756,7 +756,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 		}
 	    });
 	menu_onglets.add(menu_onglets_ajout);
-	menu_bar.add(menu_onglets);
+
 	
 	/** Menu Requête **/
 	JMenu menu_requete = new JMenu("Requête");
@@ -875,6 +875,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
 	/* Ajout du menu à la fenêtre */
 	menu_bar.add(menu_requete);
+	menu_bar.add(menu_onglets);
+	menu_bar.add(menu_aide);
        	add("North", menu_bar);
 
 	setTitle(makeFrameTitle());
@@ -977,7 +979,38 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
      JTable, QueryTableModel */
     private void makeComponentsForResultSet(Component onglet){
 	infosOnglets.get(onglet).setModele(new QueryTableModel(infosOnglets.get(onglet)));
-	JTable table = new JTable( infosOnglets.get(onglet).getModele());
+	final JTable table = new JTable( infosOnglets.get(onglet).getModele());
+
+	/* Menu contextuel sur les en-têtes de colonnes */
+	table.getTableHeader().addMouseListener(new MouseAdapter(){
+		public void mousePressed(MouseEvent e) {
+		    showPopup(e);
+		}
+		
+		private void showPopup(MouseEvent e) {
+		    if (e.isPopupTrigger()) {
+			JPopupMenu popupMenu = new JPopupMenu();
+			int col = table.getTableHeader().columnAtPoint(e.getPoint());
+			final String col_name = table.getColumnName(col);
+
+			/* Cas où la colonne est liée à une table de référence */
+			if (col_name.matches("ID_REF_.*")){
+			    JMenuItem menuTableRef = new JMenuItem("Ouvrir table de référence");
+			    menuTableRef.addActionListener(new ActionListener(){
+				    public void actionPerformed(ActionEvent ae){
+					String nom_table = col_name.substring(3);
+					makeTabFromQueryAndExecute("SELECT * FROM CONF_V3." + nom_table, nom_table);					
+				    }
+				});
+			    popupMenu.add(menuTableRef);
+			}
+			popupMenu.show(e.getComponent(), e.getX(), e.getY());
+		    }
+		}
+
+
+		
+	    });
 	infosOnglets.get(onglet).setTable(table);
 	table.setAutoCreateRowSorter(true);
 	table.getModel().addTableModelListener(this);
@@ -1002,16 +1035,26 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	return btc;//jtp_onglets.getTabCount()-1;
     }
 
-    
-    private void makeTabFromQuery(String query){
+    /* Crée un onglet avec la requête fournie 
+     Renvoie le composant identifiant l'onglet */
+    private Component makeTabFromQuery(String query){
 	Component onglet = makeTab();
-	infosOnglets.get(onglet).getJETA().setText(query);	
+	infosOnglets.get(onglet).getJETA().setText(query);
+	return onglet;
     }
 
-    private void makeTabFromQuery(String query, String title){
+    private void makeTabFromQueryAndExecute(String query, String title){
+	Component onglet = makeTabFromQuery(query, title);
+	getQueryTabs().setSelectedIndex(getQueryTabs().indexOfTabComponent(onglet)); 
+	executeRequeteOngletActif();
+    }
+
+
+    private Component makeTabFromQuery(String query, String title){
 	Component onglet = makeTab();
 	infosOnglets.get(onglet).getJETA().setText(query);	
 	getQueryTabs().setTitleAt(getQueryTabs().indexOfTabComponent(onglet), title);
+	return onglet;
     }
 
 

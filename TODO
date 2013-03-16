@@ -22,6 +22,7 @@ BUGS CORRIGÉS :
 
 
 À FAIRE :
+- gérer la version avec un MANIFEST (MAD)
 - différences entre deux résultats de requêtes
 - chrono dans le titre de l'onglet pour connaître le temps d'une requête (MAD)
 - proposer des squelettes de requêtes (MAD)
@@ -57,12 +58,12 @@ BUGS CORRIGÉS :
 - recherche de champs/tables dans l'arbre à droite (MAD)
 - icône pour l'application  (MAD)
 - refresh automatique sur les requêtes des onglets (toutes les x minutes) (MAD)
-- menu contextuel sur colonne résultat :
-   - afficher la table correspondante : ID_REF_TABLE -> affiche REF_TABLE (MAD)
 - une fois les résultats dans la JTable
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- menu contextuel sur colonne résultat :
+   - afficher la table correspondante : ID_REF_TABLE -> affiche REF_TABLE (MAD)
 - menu "Quelle version ?" (MAD)
 - automatiquement préparer la dernière connexion (MAD)
 - sauvegarder une requête (MAD)
