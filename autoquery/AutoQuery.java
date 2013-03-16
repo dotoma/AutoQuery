@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
+import javax.swing.Timer;
 
 /* SQL */
 import java.sql.ResultSet;
@@ -860,7 +861,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	JMenu menu_aide = new JMenu("Aide");
 
 
-	JMenuItem menu_version = new JMenuItem("Verion...");
+	JMenuItem menu_version = new JMenuItem("Version...");
 	menu_version.addActionListener(new ActionListener(){
 		public void actionPerformed(ActionEvent ae){
 		    JOptionPane.showMessageDialog((Component) AutoQuery.this, 
@@ -943,7 +944,29 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	    con = newConnectionFromCurrentTab();
 	    String query = getActiveJEditTextArea().getText();
 	    System.out.println("Requête exécutée : " + query);
-	    getActiveQueryTableModel().runQuery(con, query); // Le modèle de données contient toutes les données à afficher dans une JTable
+	    final Component onglet = getQueryTabs().getTabComponentAt(getQueryTabs().getSelectedIndex());
+	    int timeDelay = 1000;
+	    ActionListener time = new ActionListener(){
+		    long start = System.currentTimeMillis();
+		    
+		    @Override
+		    public void actionPerformed(ActionEvent ae){
+			JTabbedPane onglets = getQueryTabs();
+			String nom_onglet_complet = onglets.getTitleAt(onglets.indexOfTabComponent(onglet));
+			int tirets = nom_onglet_complet.indexOf("---");
+			int duree = (int) ((System.currentTimeMillis() - start) / 1000);
+			String nom_onglet = null;
+			if (tirets == -1){ // Pas de tirets
+			    nom_onglet = nom_onglet_complet + " --- " + duree  + " s.";
+			} else {
+    			    nom_onglet = nom_onglet_complet.substring(0, tirets) + "--- " + duree + " s.";
+			}
+			onglets.setTitleAt(onglets.indexOfTabComponent(onglet), nom_onglet);
+		    }
+		};
+	    Timer timer = new Timer(timeDelay, time);
+	    timer.start();
+	    getActiveQueryTableModel().runQuery(con, query, timer); // Le modèle de données contient toutes les données à afficher dans une JTable
 	    
 	    
 	}  catch (Exception e){
@@ -1025,9 +1048,9 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	// Composant de l'onglet. Sert ensuite à traquer cet onglet, même s'il change d'index (suppression, mouvement, etc.)
 	ButtonTabComponent btc = new ButtonTabComponent(jtp_onglets, this);
 	infosOnglets.put(btc, new InfosOnglet(this, btc));
+	JTabbedPane jtp_onglets = getQueryTabs();
 
 	jtp_onglets.addTab("Onglet " + (jtp_onglets.getTabCount()+1), makePanelForTab(btc));
-
 	jtp_onglets.setTabComponentAt(jtp_onglets.getTabCount()-1, btc);
 
 	/* De quoi accueillir le résultat de la requête qui sera exécutée dans ce nouvel onglet */
@@ -1387,7 +1410,7 @@ class QueryTableModel extends AbstractTableModel {
 
   // All the real work happens here; in a real application,
   // we'd probably perform the query in a separate thread.
-    public void runQuery(final Connection con, final String query) {
+    public void runQuery(final Connection con, final String query, final Timer timer) {
 	cache = new Vector();
 	try {
 	    SwingWorker worker = new SwingWorker <Void, Integer>(){
@@ -1453,6 +1476,7 @@ class QueryTableModel extends AbstractTableModel {
 		    System.out.println("Le résultat contient " + getRowCount() + " lignes et " + getColumnCount() + " colonnes.");
 		    infosOnglet.getApp().showStatus(infosOnglet.getTabTitle(),
 						    getRowCount() + " ligne(s) extraite(s).");
+		    timer.stop();
 		    fireTableChanged(null);
 		}
 	    };

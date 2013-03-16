@@ -24,7 +24,6 @@ BUGS CORRIGÉS :
 À FAIRE :
 - gérer la version avec un MANIFEST (MAD)
 - différences entre deux résultats de requêtes
-- chrono dans le titre de l'onglet pour connaître le temps d'une requête (MAD)
 - proposer des squelettes de requêtes (MAD)
    - SELECT * FROM WHERE (MAD)
    - SELECT * FROM WHERE LIMIT 1000 (MAD)
@@ -62,6 +61,7 @@ BUGS CORRIGÉS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- chrono dans le titre de l'onglet pour connaître le temps d'une requête (MAD)
 - menu contextuel sur colonne résultat :
    - afficher la table correspondante : ID_REF_TABLE -> affiche REF_TABLE (MAD)
 - menu "Quelle version ?" (MAD)
