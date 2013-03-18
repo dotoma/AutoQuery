@@ -364,9 +364,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	    if (s_insert != null){ /* Si s_insert est bien le préfixe d'un schéma, d'un alias, d'une table ou d'un champ*/
 		jeta_query.setSelectedText(s_insert.substring(s_to_complete.length()));
 		jeta_query.setCaretPosition( jeta_query.getText().length() - (s_query.length() - i_caret)); // Remet le curseur où il était avant la complétion
-		if (s_insert.length() == s_to_complete.length()) { // Si on n'insère rien parce qu'il y a plusieurs possibilités
-		    resetKeyTABCount(); // Remet le compteur de TAB à zéro puisqu'il y a eu une complétion
-		}
+	    } else {
+		resetKeyTABCount(); // Remet le compteur de TAB à zéro puisqu'il y a rien à compléter
 	    }	    
 	    System.out.println("TAB appuyé");
 	    
