@@ -27,6 +27,7 @@ BUGS CORRIGÉS :
 
 
 À FAIRE :
+- verrouiller un onglet pour qu'il ne soit pas fermable (MAD)
 - possibilité de recharger l'arbre des tables (MAD)
 - gérer la version avec un MANIFEST (MAD)
 - différences entre deux résultats de requêtes
@@ -48,9 +49,7 @@ BUGS CORRIGÉS :
 - tri des colonnes pas par ordre alphabétique mais par ordre numérique (MAD)
 - possibilité d'exécuter les requêtes
   - export en CSV (MAD)
-  - export CSV sans affichage dans le ResultSet (MAD)
   - enregistrement pour Excel (GBA)
-  - affichage du temps d'exécution pendant l'exécution (MAD)
   - distinction dans l'affichage entre  (MAD)
       - le temps de récupération et 
       - le temps de mise en forme par le QueryTableModel
@@ -91,47 +90,47 @@ FAIT :
 - sauter au nouvel onglet (GBA)
 - indiquer les paramètres de connexion dans le titre
 - menu "ouvrir une requête" (GBA)
-- look and feel de l'OS 
-- packager l'application
-- connexion
-   - fenêtre
-   - gestionnaire de profils
+- look and feel de l'OS (MAD)
+- packager l'application (MAD)
+- connexion 
+   - fenêtre (MAD)
+   - gestionnaire de profils (MAD)
 - menu contextuel sur les éléments de l'arbre :
-   - date de mise à jour
-   - nombre de lignes
-   - CREATE STATEMENT
-   - afficher les 1000 premières lignes + nommer l'onglet après la table
-- la status bar affiche l'onglet qui parle : "Émetteur : message"
-- un JTable par JETA
-   - création d'un JTable et d'un QueryTableModel pour chaque JETA
-   - faire en sorte que cliquer sur un onglet associe le JETA et la JTable
-- historique des requêtes
-- mettre le JTable dans un JSplitPane horizontal
-- possibilité d'exécuter les requêtes
-  - affichage dans l'application
-  - tri des colonnes
-  - ajustement de la taille des colonnes
-  - exécution dans un autre thread pour ne pas niquer l'affichage
-  - jauge de progression en pourcents du traitement des données en local avant affichage
-- reconnaissance des mots-clefs même si pas en majuscule
-- onglets
-  - ajouter
-  - supprimer
-  - renommer en double-cliquant dessus
-- démarrage sans connexion internet
-- complétion du plus long préfixe commun et de l'identificateur complet si qu'une possibilité
-  - alias, schémas, tables
-  - champs
-  - fonctionne même si précédé de \n
-- coloration syntaxique
-- liste des schémas, tables et colonnes dans la partie droite de l'application
-- status bar pour indiquer 
-  - combien de complétions possibles sur simple TAB
-  - qu'un alias a été détecté après CTRL + R
-- double TAB : menu contextuel avec les complétions possibles pour
-   - les schémas,
-   - les alias,
-   - les tables,
-   - les champs
-- COPIER/COLLER
-- la status bar, après avoir affiché "X complétions possibles" s'efface quand on se remet à taper
+   - date de mise à jour (MAD)
+   - nombre de lignes (MAD)
+   - CREATE STATEMENT (MAD)
+   - afficher les 1000 premières lignes + nommer l'onglet après la table (MAD)
+- la status bar affiche l'onglet qui parle : "Émetteur : message" (MAD)
+- un JTable par JETA (GBA)
+   - création d'un JTable et d'un QueryTableModel pour chaque JETA (MAD)
+   - faire en sorte que cliquer sur un onglet associe le JETA et la JTable (MAD)
+- historique des requêtes (MAD)
+- mettre le JTable dans un JSplitPane horizontal (MAD)
+- possibilité d'exécuter les requêtes (MAD)
+  - affichage dans l'application (MAD)
+  - tri des colonnes (MAD)
+  - ajustement de la taille des colonnes (MAD)
+  - exécution dans un autre thread pour ne pas niquer l'affichage (MAD)
+  - jauge de progression en pourcents du traitement des données en local avant affichage (MAD)
+  - export CSV sans affichage dans le ResultSet (MAD)
+- reconnaissance des mots-clefs même si pas en majuscule (MAD)
+- onglets (MAD)
+  - ajouter (MAD)
+  - supprimer (MAD)
+  - renommer en double-cliquant dessus (MAD)
+- complétion du plus long préfixe commun et de l'identificateur complet si qu'une possibilité (MAD)
+  - alias, schémas, tables (MAD)
+  - champs (MAD)
+  - fonctionne même si précédé de \n (MAD)
+- coloration syntaxique (MAD)
+- liste des schémas, tables et colonnes dans la partie droite de l'application (MAD)
+- status bar pour indiquer
+  - combien de complétions possibles sur simple TAB (MAD)
+  - qu'un alias a été détecté après CTRL + R (MAD)
+- double TAB : menu contextuel avec les complétions possibles pour (MAD)
+   - les schémas, (MAD)
+   - les alias, (MAD)
+   - les tables, (MAD)
+   - les champs (MAD)
+- COPIER/COLLER (MAD)
+- la status bar, après avoir affiché "X complétions possibles" s'efface quand on se remet à taper (MAD)

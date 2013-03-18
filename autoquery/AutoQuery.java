@@ -1,6 +1,7 @@
 package autoquery;
 
 /* GUI */
+import javax.swing.JSeparator;
 import javax.swing.JComponent;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -79,6 +80,9 @@ import javax.swing.event.ChangeEvent;
 
 /* Classes liées à JEditTextArea */
 import autoquery.jedittextarea.*;
+
+/* Classe pour sauver en CSV */
+import au.com.bytecode.opencsv.CSVWriter;
 
 
 /**
@@ -762,10 +766,10 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	menu_onglets.add(menu_onglets_ajout);
 
 	
-	/** Menu Requête **/
+	/** MENU REQUÊTE **/
 	JMenu menu_requete = new JMenu("Requête");
 	
-	/* Charger une Requête */
+	/* CHARGER UNE REQUÊTE */
 	final JMenuItem menu_requete_ouvrir = new JMenuItem("Charger...", KeyEvent.VK_C);
 	menu_requete_ouvrir.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 	menu_requete_ouvrir.addActionListener(new ActionListener(){
@@ -799,7 +803,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	menu_requete.add(menu_requete_ouvrir);
 
 
-	/* Sauvegarder une requête */
+	/* SAUVEGARDER UNE REQUÊTE */
 	final JMenuItem menu_requete_sauver = new JMenuItem("Sauver...", KeyEvent.VK_S);
 	menu_requete_sauver.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
 	menu_requete_sauver.addActionListener(new ActionListener(){
@@ -826,8 +830,10 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	menu_requete.add(menu_requete_sauver);
 
 
+	menu_requete.add(new JSeparator());
 
-	/* Exécuter une requête */
+
+	/* EXÉCUTER UNE REQUÊTE */
 	JMenuItem menu_requete_executer = new JMenuItem("Exécuter", KeyEvent.VK_X);
 	menu_requete_executer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, ActionEvent.CTRL_MASK));
 	menu_requete_executer.addActionListener(new ActionListener(){
@@ -848,6 +854,34 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	menu_requete.add(menu_requete_executer);
 
 
+	/* EXPORTER RÉSULTAT REQUÊTE DANS CSV */
+	final JMenuItem menu_requete_executer_dans_csv = new JMenuItem("Exécuter & exporter en CSV", KeyEvent.VK_C);
+	menu_requete_executer_dans_csv.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
+	menu_requete_executer_dans_csv.addActionListener(new ActionListener(){
+		public void actionPerformed(ActionEvent e){
+		    /** Ouverture d'une boîte de dialogue de choix de fichier **/
+		    final JFileChooser fc = new JFileChooser();
+		    int returnVal = fc.showOpenDialog(menu_requete_executer_dans_csv);
+		    
+		    if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File inFile = fc.getSelectedFile();
+			try {
+			    FileWriter fr = new FileWriter(inFile);
+			    CSVWriter writer = new CSVWriter(fr);
+			    executeRequeteOngletActif(writer);
+			} catch (IOException ioex) {
+			    System.err.println("Erreur lors de l'export CSV.");
+			    System.err.println(ioex);
+			} 
+		    }
+		    
+		}
+	    });
+	menu_requete.add(menu_requete_executer_dans_csv);
+
+
+	menu_requete.add(new JSeparator());
+	
 	/* Ajouter un alias */
 	JMenuItem menu_requete_alias = new JMenuItem("Ajouter un alias", KeyEvent.VK_S);
 	menu_requete_alias.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK));
@@ -941,6 +975,10 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
     }
 
     private void executeRequeteOngletActif(){
+	executeRequeteOngletActif(null);
+    }
+
+    private void executeRequeteOngletActif(CSVWriter writer){
 	System.out.println("Exécution de la requête...");
 	Connection con = null;
 	try{
@@ -969,7 +1007,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 		};
 	    Timer timer = new Timer(timeDelay, time);
 	    timer.start();
-	    getActiveQueryTableModel().runQuery(con, query, timer); // Le modèle de données contient toutes les données à afficher dans une JTable
+	    getActiveQueryTableModel().runQuery(con, query, timer, writer); // Le modèle de données contient toutes les données à afficher dans une JTable
 	    
 	    
 	}  catch (Exception e){
@@ -1454,7 +1492,7 @@ class QueryTableModel extends AbstractTableModel {
 
   // All the real work happens here; in a real application,
   // we'd probably perform the query in a separate thread.
-    public void runQuery(final Connection con, final String query, final Timer timer) {
+    public void runQuery(final Connection con, final String query, final Timer timer, final CSVWriter writer) {
 	cache = new Vector();
 	try {
 	    SwingWorker worker = new SwingWorker <Void, Integer>(){
@@ -1476,29 +1514,34 @@ class QueryTableModel extends AbstractTableModel {
 			System.out.println("Avant requête");			
 			ResultSet rs = st.executeQuery(query);
 			System.out.println("Après requête");
-			ResultSetMetaData meta = rs.getMetaData();
-			setColCount(meta.getColumnCount());
-			// Now we must rebuild the headers array with the new column names
-			setHeaders(new String[colCount]);
-			for (int h = 1; h <= colCount; h++) {
-			    setHeader(h - 1, meta.getColumnName(h));
-			}
 
 			rs.last();
 			int nlignes = rs.getRow();
 			rs.beforeFirst();
-			int ligne = 0;
 
-			while (rs.next()) {
-			    int colCount = getColumnCount();
-			    String[] record = new String[colCount];
-			    for (int i = 0; i < colCount; i++) {
-				record[i] = rs.getString(i + 1);
+			if (writer != null && nlignes > 0){
+			    writer.writeAll(rs, true); // true = includes headers
+			} else {
+			    ResultSetMetaData meta = rs.getMetaData();
+			    setColCount(meta.getColumnCount());
+			    // Now we must rebuild the headers array with the new column names
+			    setHeaders(new String[colCount]);
+			    for (int h = 1; h <= colCount; h++) {
+				setHeader(h - 1, meta.getColumnName(h));
 			    }
-			    cache.addElement(record);
-			    publish(new Integer(100 * ++ligne / nlignes));
-			}
 
+			    int ligne = 0;
+
+			    while (rs.next()) {
+				int colCount = getColumnCount();
+				String[] record = new String[colCount];
+				for (int i = 0; i < colCount; i++) {
+				    record[i] = rs.getString(i + 1);
+				}
+				cache.addElement(record);
+				publish(new Integer(100 * ++ligne / nlignes));
+			    }
+			}
 		    } catch (SQLException e) {
 		    } catch (Exception e){
 			System.out.println("Exception dans le worker !");
@@ -1517,11 +1560,23 @@ class QueryTableModel extends AbstractTableModel {
 
 		@Override
 		public void done(){
-		    System.out.println("Le résultat contient " + getRowCount() + " lignes et " + getColumnCount() + " colonnes.");
-		    infosOnglet.getApp().showStatus(infosOnglet.getTabTitle(),
-						    getRowCount() + " ligne(s) extraite(s).");
+		    if (writer != null){
+			infosOnglet.getApp().showStatus(infosOnglet.getTabTitle(),
+							"Écriture dans le fichier CSV terminée.");
+			try{
+			    writer.close();
+			} catch(IOException ioex){
+			    System.out.println("Erreur lors de la fermeture du fichier CSV.");
+			}
+		    } else {
+			System.out.println("Le résultat contient " + getRowCount() + " lignes et " + getColumnCount() + " colonnes.");
+			infosOnglet.getApp().showStatus(infosOnglet.getTabTitle(),
+							getRowCount() + " ligne(s) extraite(s).");
+			fireTableChanged(null);
+		    }
+
 		    timer.stop();
-		    fireTableChanged(null);
+		    
 		}
 	    };
 
