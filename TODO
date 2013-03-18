@@ -1,4 +1,6 @@
 BUGS :
+- refresh onglets quand chrono tourne
+- détection des virgules avant FROM et pas from
 - complétion des alias marche plus
 - le menu contextuel de complétion a des affichages fantaisistes
 - les grosses requêtes font éclater la mémoire :
@@ -22,6 +24,7 @@ BUGS CORRIGÉS :
 
 
 À FAIRE :
+- possibilité de recharger l'arbre des tables (MAD)
 - gérer la version avec un MANIFEST (MAD)
 - différences entre deux résultats de requêtes
 - proposer des squelettes de requêtes (MAD)
@@ -61,6 +64,7 @@ BUGS CORRIGÉS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- copier le contenu d'une cellule (MAD)
 - chrono dans le titre de l'onglet pour connaître le temps d'une requête (MAD)
 - menu contextuel sur colonne résultat :
    - afficher la table correspondante : ID_REF_TABLE -> affiche REF_TABLE (MAD)

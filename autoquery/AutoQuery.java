@@ -51,6 +51,9 @@ import java.util.HashMap;
 import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
 import javax.swing.Timer;
+import java.awt.Point;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 
 /* SQL */
 import java.sql.ResultSet;
@@ -1003,6 +1006,47 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
     private void makeComponentsForResultSet(Component onglet){
 	infosOnglets.get(onglet).setModele(new QueryTableModel(infosOnglets.get(onglet)));
 	final JTable table = new JTable( infosOnglets.get(onglet).getModele());
+
+	/* Menu contextuel sur les cellules du JTable*/
+	table.addMouseListener(new MouseAdapter(){
+		public void mousePressed(MouseEvent e){
+		    if (e.isPopupTrigger()) {
+			Point p = e.getPoint();
+			final int row = table.rowAtPoint(p);
+			final int col = table.columnAtPoint(p);
+			
+			if ((row > -1 && row < table.getRowCount()) && (col > -1 && col < table.getColumnCount())) {
+			    JPopupMenu popupMenu = new JPopupMenu();
+
+			    /* COPIER LA CELLULE */
+			    JMenuItem menuCopier = new JMenuItem("Copier ce champ");
+			    menuCopier.addActionListener(new ActionListener(){
+				    public void actionPerformed(ActionEvent ae){
+					Clipboard clipboard = getToolkit().getSystemClipboard();
+					String value = (String) table.getValueAt(row, col);
+					clipboard.setContents(new StringSelection(value),null);
+				    }
+				});
+			    popupMenu.add(menuCopier);
+
+			    /* COPIER LA CELLULE AVEC GUILLEMETS */
+			    JMenuItem menuCopierGuillemets = new JMenuItem("Copier ce champ avec guillemets");
+			    menuCopierGuillemets.addActionListener(new ActionListener(){
+				    public void actionPerformed(ActionEvent ae){
+					Clipboard clipboard = getToolkit().getSystemClipboard();
+					String value = "'" + (String) table.getValueAt(row, col) + "'";
+					clipboard.setContents(new StringSelection(value),null);
+				    }
+				});
+			    popupMenu.add(menuCopierGuillemets);
+
+
+
+			    popupMenu.show(e.getComponent(), e.getX(), e.getY());
+			}
+		    }
+		}
+	    });
 
 	/* Menu contextuel sur les en-têtes de colonnes */
 	table.getTableHeader().addMouseListener(new MouseAdapter(){
