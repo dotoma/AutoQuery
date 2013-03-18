@@ -23,6 +23,7 @@ BUGS CORRIGÉS :
 - le menu contextuel de complétion a des affichages fantaisistes
    - pas de complétion derrière "select * from CONF_V3.A" (MAD)
      -> affiche juste "3 complétions possibles"
+- menu de complétion ne s'affiche pas au curseur (MAD)
 
 
 À FAIRE :

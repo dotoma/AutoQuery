@@ -408,6 +408,17 @@ public class JEditTextArea extends JComponent
 		return scrollTo(line,offset);
 	}
 
+
+    public Point caretToPoint(){
+	int line = getCaretLine();
+	int lineStart = getLineStartOffset(line);
+	int offset = Math.max(0,Math.min(getLineLength(line) - 1,
+					 getCaretPosition() - lineStart));
+	return new Point(offsetToX(line, offset),
+			 lineToY(line));
+
+    }
+
 	/**
 	 * Ensures that the specified line and offset is visible by scrolling
 	 * the text area if necessary.

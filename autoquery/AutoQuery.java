@@ -375,7 +375,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	    if (popup != null){
 		add(popup);
 		System.out.println("Affichage d'un popup des choix possibles");
-		popup.show(jeta_query, 12, 20); // Position pifométrique
+		Point p = jeta_query.caretToPoint();
+		popup.show(jeta_query, (int) p.getX() + 20, (int) p.getY()); // 20 pixels à droite du mot qu'on propose de compléter
 	    }
 	    this.resetKeyTABCount();
 	    
