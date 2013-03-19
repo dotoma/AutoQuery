@@ -1027,6 +1027,10 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
     	scrollPaneResultSet.setViewportView(newJTable);
     }
 
+    /** Renvoie le JTable correspondant à l'onglet sélectionné **/
+    private JTable getActiveTable(){
+	return infosOnglets.get(jtp_onglets.getTabComponentAt(jtp_onglets.getSelectedIndex())).getTable();
+    }
 
 
     /** Renvoie le QueryTableModel correspondant à l'onglet sélectionné **/
@@ -1078,6 +1082,86 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 				});
 			    popupMenu.add(menuCopierGuillemets);
 
+
+			    /* EXPORTER LES LIGNES SÉLECTIONNÉES EN CSV */
+			    final JMenuItem menuExportCSV = new JMenuItem("Exporter en CSV");
+			    final int[] lignes = table.getSelectedRows();
+			    if (lignes == null){
+				menuExportCSV.setEnabled(false);
+			    } else {
+				menuExportCSV.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent ae){
+					    /** Ouverture d'une boîte de dialogue de choix de fichier **/
+					    final JFileChooser fc = new JFileChooser();
+					    int returnVal = fc.showOpenDialog(menuExportCSV);
+		    
+					    if (returnVal == JFileChooser.APPROVE_OPTION) {
+						File inFile = fc.getSelectedFile();
+						try {
+						    FileWriter fr = new FileWriter(inFile);
+						    final CSVWriter writer = new CSVWriter(fr);
+
+						    SwingWorker worker = new SwingWorker <Void, Integer>(){
+							
+							@Override
+							protected void process(List<Integer> chunks){
+							    int dernier_element = chunks.get(chunks.size() -1).intValue();
+							    if ( dernier_element % 10 == 0){
+								status_bar.showStatus(getQueryTabs().getTitleAt(getQueryTabs().getSelectedIndex()), 
+										      "Export CSV : " + dernier_element + " %");
+							    }
+							}
+
+							@Override
+							public Void doInBackground() throws SQLException{
+							    try{
+								QueryTableModel model = (QueryTableModel) table.getModel();
+								int row_count = lignes.length;
+								int iter = 0;
+								for (int ligne : lignes){
+								    writer.writeNext(model.getRow(ligne));
+								    publish(new Integer(100 * ++iter / row_count));
+								}
+							    } catch (Exception e){
+								System.out.println("Exception dans le worker !");
+								System.out.println("Message de l'exception : " + e.getMessage());
+			
+							    } finally {
+								try{
+								    writer.close();
+								} catch (IOException ioex){
+								    System.out.println("Erreur lors de la fermeture du fichier CSV.");
+								}
+							    }
+
+							    return null;
+							}
+
+							@Override
+							public void done(){
+
+		    
+							}
+						    };
+
+
+
+						    worker.execute();
+
+
+						    writer.close();
+						} catch (IOException ioex) {
+						    System.err.println("Erreur lors de l'export CSV.");
+						    System.err.println(ioex);
+						} 
+					    }
+					    
+					}		    
+				    });
+			    }
+					    
+			
+			    popupMenu.add(menuExportCSV);
 
 
 			    popupMenu.show(e.getComponent(), e.getX(), e.getY());
@@ -1486,6 +1570,10 @@ class QueryTableModel extends AbstractTableModel {
 	return cache.size();
     }
     
+    public String[] getRow(int row){
+	return (String[])cache.elementAt(row);
+    }
+
     public Object getValueAt(int row, int col) {
 	return ((String[])cache.elementAt(row))[col];
     }

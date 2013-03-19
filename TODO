@@ -48,7 +48,6 @@ BUGS CORRIGÉS :
 - trouver les occurrences de la sélection (à la Notepad++) (AJS)
 - tri des colonnes pas par ordre alphabétique mais par ordre numérique (MAD)
 - possibilité d'exécuter les requêtes
-  - export en CSV (MAD)
   - enregistrement pour Excel (GBA)
   - distinction dans l'affichage entre  (MAD)
       - le temps de récupération et 
@@ -66,6 +65,8 @@ BUGS CORRIGÉS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- export CSV sans affichage dans le ResultSet (MAD)
+- export en CSV des lignes sélectionnées (MAD)
 - copier le contenu d'une cellule (MAD)
 - chrono dans le titre de l'onglet pour connaître le temps d'une requête (MAD)
 - menu contextuel sur colonne résultat :
@@ -112,7 +113,6 @@ FAIT :
   - ajustement de la taille des colonnes (MAD)
   - exécution dans un autre thread pour ne pas niquer l'affichage (MAD)
   - jauge de progression en pourcents du traitement des données en local avant affichage (MAD)
-  - export CSV sans affichage dans le ResultSet (MAD)
 - reconnaissance des mots-clefs même si pas en majuscule (MAD)
 - onglets (MAD)
   - ajouter (MAD)
