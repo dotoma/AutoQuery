@@ -269,7 +269,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	/* Aller sur la page suivante pour tous les motifs utilisables 
 	   dans une expression régulière JAVA :
 	   http://docs.oracle.com/javase/1.4.2/docs/api/java/util/regex/Pattern.html#sum */ 
-	boolean exists = s.matches(".*,\\s*FROM\\s.*");
+	boolean exists = s.matches(".*,\\s*[fF][Rr][Oo][Mm]\\s.*");
 
 	if (exists){
 	    showStatus(getQueryTabs().getTitleAt(jtp_onglets.getSelectedIndex()), 
@@ -594,6 +594,15 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
 		MouseListener ml = new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
+			    maybeShowPopup(e);
+			}
+
+
+			public void mouseReleased(MouseEvent e) {
+			    maybeShowPopup(e);
+			}
+
+			private void maybeShowPopup(MouseEvent e){
 				if (e.getButton() == MouseEvent.BUTTON3){
 					TreePath selPath = jt_arborescence_BDD.getPathForLocation(e.getX(), e.getY());
 					int type = selPath.getPathCount();
@@ -661,6 +670,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 							break;
 					}
 				}
+
 			}
 		};
 		jt_arborescence_BDD.addMouseListener(ml);
@@ -1064,6 +1074,15 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 	/* Menu contextuel sur les cellules du JTable*/
 	table.addMouseListener(new MouseAdapter(){
 		public void mousePressed(MouseEvent e){
+		    maybeShowPopup(e);
+		}
+
+
+		public void mouseReleased(MouseEvent e){
+		    maybeShowPopup(e);
+		}
+
+		private void maybeShowPopup(MouseEvent e){
 		    if (e.isPopupTrigger()) {
 			Point p = e.getPoint();
 			final int row = table.rowAtPoint(p);

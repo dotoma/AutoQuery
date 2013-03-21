@@ -1,7 +1,6 @@
 BUGS :
 - pas de menu contextuel dans le JTable sous Windows
 - refresh onglets quand chrono tourne
-- détection des virgules avant FROM et pas from
 - complétion des alias marche plus
 - les grosses requêtes font éclater la mémoire :
    ATTENTION: Exception on Toolkit thread
@@ -65,6 +64,7 @@ BUGS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- FIX : détection des virgules avant FROM case-insensitive (MAD)
 - FIX : pas de menu contextuel dans le ResultSet sous Windows (GBA/CGZ)
 - FIX : cliquer sur l'étiquette du tab ne focusait pas l'éditeur de requêtes (MAD)
 - donner le focus au JEditTextArea nouvellement créé (CGZ)
