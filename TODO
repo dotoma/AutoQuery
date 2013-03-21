@@ -1,4 +1,5 @@
 BUGS :
+- pas de menu contextuel dans le JTable sous Windows
 - refresh onglets quand chrono tourne
 - détection des virgules avant FROM et pas from
 - complétion des alias marche plus
@@ -18,15 +19,14 @@ BUGS :
 	at sun.awt.X11.XToolkit.run(XToolkit.java:543)
 	at java.lang.Thread.run(Thread.java:662)
 
-BUGS CORRIGÉS :
-- pas d'affichage quand une seule ligne (MAD)
-- le menu contextuel de complétion a des affichages fantaisistes
-   - pas de complétion derrière "select * from CONF_V3.A" (MAD)
-     -> affiche juste "3 complétions possibles"
-- menu de complétion ne s'affiche pas au curseur (MAD)
-
-
 À FAIRE :
+- autoriser la saisie en minuscule (oui même pour les noms de table) (CGZ)
+- enregistrer le mot de passe (CGZ)
+- CTRL-Z dans le JEditTextArea (CGZ)
+- double-clic sur une cellule dans une colonne ID_REF pour affichage lié à cette valeur (CGZ)
+- copier une colonne (CGZ)
+- check for updates (CGZ)
+- mettre des guillemets automatiquement après un "where champt_texte = " (CGZ)
 - verrouiller un onglet pour qu'il ne soit pas fermable (MAD)
 - possibilité de recharger l'arbre des tables (MAD)
 - gérer la version avec un MANIFEST (MAD)
@@ -65,6 +65,18 @@ BUGS CORRIGÉS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- FIX : pas de menu contextuel dans le ResultSet sous Windows (GBA/CGZ)
+- FIX : cliquer sur l'étiquette du tab ne focusait pas l'éditeur de requêtes (MAD)
+- donner le focus au JEditTextArea nouvellement créé (CGZ)
+- virer le point à la fin des lignes (CGZ)
+- faire "Entrée" plutôt que d'être forcé de cliquer sur "Login" (CGZ)
+- CTRL-W pour fermer un onglet (CGZ)
+*** Version 0.50.0 ***
+- FIX : pas d'affichage quand une seule ligne (MAD)
+- FIX : le menu contextuel de complétion a des affichages fantaisistes
+   - pas de complétion derrière "select * from CONF_V3.A" (MAD)
+     -> affiche juste "3 complétions possibles"
+- FIX : menu de complétion ne s'affiche pas au curseur (MAD)
 - export CSV sans affichage dans le ResultSet (MAD)
 - export en CSV des lignes sélectionnées (MAD)
 - copier le contenu d'une cellule (MAD)

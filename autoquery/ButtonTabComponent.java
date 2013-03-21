@@ -55,7 +55,7 @@ public class ButtonTabComponent extends JPanel {
                 { 
                     if (pane.getSelectedIndex() != pane.indexOfTabComponent(ButtonTabComponent.this)) 
                         pane.setSelectedIndex(pane.indexOfTabComponent(ButtonTabComponent.this)); 
-                    pane.requestFocus(); 
+                    //pane.requestFocus(); Mise en commentaire par MAD sinon problèmes de focus
                 } 
             }
     private JTextField getEditorComponent(final JLabel tabLabel, String text) 

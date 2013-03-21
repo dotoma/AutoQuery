@@ -1976,12 +1976,16 @@ public class JEditTextArea extends JComponent
 		{
 			setCaretVisible(true);
 			focusedComponent = JEditTextArea.this;
+			System.out.println("Focus in ! (" + JEditTextArea.this.hashCode() + ")");
+			
 		}
 
 		public void focusLost(FocusEvent evt)
 		{
 			setCaretVisible(false);
 			focusedComponent = null;
+			System.out.println("Focus out ! (" + JEditTextArea.this.hashCode() + ")");
+			
 		}
 	}
 

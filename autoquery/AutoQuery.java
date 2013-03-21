@@ -746,6 +746,10 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 		    Component onglet = jtp_onglets.getTabComponentAt(jtp_onglets.getSelectedIndex());
 		    InfosOnglet infos = infosOnglets.get(onglet);
 		    setActiveTable(infos.getTable());
+		    System.out.println(infos.getJETA().hashCode() + " demande le focus.");
+		    
+		    getActiveJEditTextArea().requestFocusInWindow(); // Donne le focus au JEditTextArea
+		    System.out.println(getFocusOwner().hashCode() + " a le focus.");
 		}
 	    });
 
@@ -754,6 +758,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	
 	/** Menu Onglets **/
 	JMenu menu_onglets = new JMenu("Onglets");
+
+	/* AJOUTER UN ONGLET */
 	JMenuItem menu_onglets_ajout = new JMenuItem("Ajouter", KeyEvent.VK_A);
 	menu_onglets_ajout.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
 	menu_onglets_ajout.addActionListener(new ActionListener(){
@@ -761,9 +767,29 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 		    /* Sélectionne l'onglet nouvellement créé */
 		    Component onglet = makeTab();
 		    jtp_onglets.setSelectedIndex(jtp_onglets.indexOfTabComponent(onglet)); 
+		    /*		    
+				    getActiveJEditTextArea().setText(""); */
+		    /*		    jtp_onglets.getRootPane().requestFocusInWindow();
+		    System.out.println("Le composant qui a le focus est " + getFocusOwner()); 
+		    getActiveJEditTextArea().requestFocusInWindow();*/   
+System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    " +getFocusOwner().hashCode()); 
+
+		    
 		}
 	    });
 	menu_onglets.add(menu_onglets_ajout);
+
+	/* FERMER UN ONGLET */
+	JMenuItem menu_onglets_fermer = new JMenuItem("Fermer", KeyEvent.VK_F);
+	menu_onglets_fermer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));
+	menu_onglets_fermer.addActionListener(new ActionListener(){
+		public void actionPerformed(ActionEvent e){
+		    deleteTab(getQueryTabs().getSelectedIndex());
+		}
+	    });
+	menu_onglets.add(menu_onglets_fermer);
+
+
 
 	
 	/** MENU REQUÊTE **/
@@ -920,21 +946,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	setTitle(makeFrameTitle());
 	pack();
 	setVisible(true);
-
-	/* Gestion des raccourcis ici */
-	// KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-	// kfm.addKeyEventDispatcher( new KeyEventDispatcher() {
-	// 	@Override
-	// 	public boolean dispatchKeyEvent(KeyEvent e) {
-	// 	    KeyStroke keyStroke = KeyStroke.getKeyStrokeForEvent(e);
-	// 	    if (keyStroke == KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK)){
-			
-	// 	    }
-	// 	    getActiveJEditTextArea().processKeyEvent(e);
-	// 	    return true;
-	// 	}
-	//     });
-	
+	getActiveJEditTextArea().requestFocusInWindow(); // Donne le focus au JEditTextArea
 
     }
 
@@ -1172,11 +1184,16 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
 	/* Menu contextuel sur les en-têtes de colonnes */
 	table.getTableHeader().addMouseListener(new MouseAdapter(){
+		public void mouseReleased(MouseEvent e) {
+		    maybeShowPopup(e); // Sous Windows
+		}
+
+
 		public void mousePressed(MouseEvent e) {
-		    showPopup(e);
+		    maybeShowPopup(e); // Sous Linux
 		}
 		
-		private void showPopup(MouseEvent e) {
+		private void maybeShowPopup(MouseEvent e) {
 		    if (e.isPopupTrigger()) {
 			JPopupMenu popupMenu = new JPopupMenu();
 			int col = table.getTableHeader().columnAtPoint(e.getPoint());
@@ -1220,8 +1237,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	jtp_onglets.setTabComponentAt(jtp_onglets.getTabCount()-1, btc);
 
 	/* De quoi accueillir le résultat de la requête qui sera exécutée dans ce nouvel onglet */
-	makeComponentsForResultSet(btc); //jtp_onglets.getTabCount()-1);
-	return btc;//jtp_onglets.getTabCount()-1;
+	makeComponentsForResultSet(btc); 
+	return btc;
     }
 
     /* Crée un onglet avec la requête fournie 
@@ -1247,7 +1264,9 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
     }
 
 
-    private JPanel makePanelForTab(Component component){
+    /** S'appelle makePanel parce que historiquement ça renvoyait un JPanel 
+     qui contenait le JETA mais ça me galérait avec les histoires de focus etc. **/
+    private JEditTextArea makePanelForTab(Component component){
 
 	/** Crée le contenu d'un onglet
 	    Crée le composant pour écrire les requêtes **/
@@ -1263,9 +1282,10 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
 	
 	/** Crée le JPanel dans lequel on met les composants de chaque onglet **/
-	JPanel panel = new JPanel(new BorderLayout());
-	panel.add("Center", jeta_query);
-	return panel;
+	//	JPanel panel = new JPanel(new BorderLayout());
+	//panel.add("Center", jeta_query);
+	//return panel;
+	return jeta_query;
     }
        
     public void deleteTab(int tab){

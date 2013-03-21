@@ -201,6 +201,9 @@ public class LoginDialog extends JDialog {
  
         getContentPane().add(panel, BorderLayout.CENTER);
         getContentPane().add(bp, BorderLayout.PAGE_END);
+
+	/* Définit le bouton Login comme celui qui sera activé si touche Entrée pressée */
+	getRootPane().setDefaultButton(btnLogin);
  
         pack();
         setResizable(false);

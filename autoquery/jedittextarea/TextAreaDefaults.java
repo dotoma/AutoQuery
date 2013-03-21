@@ -75,7 +75,7 @@ public class TextAreaDefaults
 			DEFAULTS.bracketHighlightColor = Color.red; //Color.black; Modification MAD
 			DEFAULTS.bracketHighlight = true;
 			DEFAULTS.eolMarkerColor = new Color(0x009999);
-			DEFAULTS.eolMarkers = true;
+			DEFAULTS.eolMarkers = false; // was true; Modification MAD
 			DEFAULTS.paintInvalid = true;
 		}
 
