@@ -1,4 +1,4 @@
-package draw;
+package autoquery;
 
 import javax.swing.*;
 import java.awt.*;
@@ -6,6 +6,11 @@ import java.util.List;
 import java.util.ArrayList;
 import java.awt.event.*;
 import javax.swing.event.*;
+
+/**
+ * Insipiré de GraphPanel de John B. Matthews; distribution per GPL.
+ */
+
 
 public class VisualQuery extends JComponent {
     private static final int WIDE = 640;
@@ -19,8 +24,8 @@ public class VisualQuery extends JComponent {
     private Point pendingConnectionEndPoint;
 
     
-    private List<Node> nodes = new ArrayList<Node>();
-    private List<Node> selected = new ArrayList<Node>();
+    private List<NodeSet> nodeSets = new ArrayList<NodeSet>();
+    private List<NodeSet> selected = new ArrayList<NodeSet>();
     private List<Edge> edges = new ArrayList<Edge>();
     
 
@@ -47,9 +52,9 @@ public class VisualQuery extends JComponent {
         this.setOpaque(true);
         this.addMouseListener(new MouseHandler());
         this.addMouseMotionListener(new MouseMotionHandler());
-
     }
 
+    
 
     @Override
     public void paintComponent(Graphics g) {
@@ -65,8 +70,8 @@ public class VisualQuery extends JComponent {
 		       pendingConnectionEndPoint.x,
 		       pendingConnectionEndPoint.y);
 	}
-        for (Node n : nodes) {
-            n.draw(g);
+        for (NodeSet ns : nodeSets) {
+            ns.draw(g);
         }
         if (selecting) {
             g.setColor(Color.darkGray);
@@ -75,7 +80,12 @@ public class VisualQuery extends JComponent {
         }
     }
 
-
+    public void addNodeSet(String table_nom, String[] champs){
+	NodeSet ns = new NodeSet(new Point(10, 10), table_nom, champs);
+	ns.setSelected(false);
+	nodeSets.add(ns);
+	repaint();
+    }
 
     private class MouseMotionHandler extends MouseMotionAdapter {
 
@@ -89,14 +99,14 @@ public class VisualQuery extends JComponent {
                     Math.min(mousePt.y, e.getY()),
                     Math.abs(mousePt.x - e.getX()),
                     Math.abs(mousePt.y - e.getY()));
-                Node.selectRect(nodes, mouseRect);
+                NodeSet.selectRect(nodeSets, mouseRect);
             } else if (connecting){
 		pendingConnectionEndPoint = e.getPoint();
 	    } else {
                 delta.setLocation(
                     e.getX() - mousePt.x,
                     e.getY() - mousePt.y);
-                Node.updatePosition(nodes, delta);
+                NodeSet.updatePosition(nodeSets, delta);
                 mousePt = e.getPoint();
             }
             e.getComponent().repaint();
@@ -113,12 +123,6 @@ public class VisualQuery extends JComponent {
             if (e.isShiftDown()) {
 		/* Ajoute ou supprime un élément de la sélection
 		  Node.selectToggle(nodes, mousePt); */
-            Node.selectNone(nodes);
-            Point p = mousePt.getLocation();
-            Node n = new Node(p, 30, Color.black, Kind.Table);
-            n.setSelected(false);
-            nodes.add(n);
-
 		
             } else if (e.isControlDown()) {
 		connecting = true;
@@ -127,7 +131,7 @@ public class VisualQuery extends JComponent {
 		/* Si menu contextuel
                 Node.selectOne(nodes, mousePt);
                 showPopup(e); */
-            } else if (Node.selectOne(nodes, mousePt)) {
+            } else if (NodeSet.selectOne(nodeSets, mousePt)) {
 		/* Sélectionne l'élément contenant le point du clic 
 		 si le clic est sur un élément */
                 selecting = false;
@@ -135,7 +139,7 @@ public class VisualQuery extends JComponent {
 		/* Si le clic est hors de tout élément,
 		 on déselectionne tous les éléments et on passe
 		en mode sélection */
-                Node.selectNone(nodes);
+                NodeSet.selectNone(nodeSets);
                 selecting = true;
             }
             e.getComponent().repaint();
@@ -153,9 +157,9 @@ public class VisualQuery extends JComponent {
 	    if (connecting){
 		connecting = false;
 		// Tester si on a connecté deux Nodes
-		Node n2 = Node.getNodeFromPoint(nodes, e.getPoint());
+		Node n2 = NodeSet.getNodeFromPoint(nodeSets, e.getPoint());
 		if (n2 != null){
-		    Node n1 = Node.getNodeFromPoint(nodes, pendingConnectionStartPoint);
+		    Node n1 = NodeSet.getNodeFromPoint(nodeSets, pendingConnectionStartPoint);
 		    edges.add(new Edge(n1, n2));
 
 		    System.out.println("Connexion !");
@@ -188,66 +192,83 @@ public class VisualQuery extends JComponent {
 
 
 
+    private static class NodeSet {
+	private List<Node> nodes = new ArrayList<Node>();
+	private Rectangle b = null;
+	private boolean selected = false;
+	private Point coin;
+	private String name;
+	public static final int HEADER_HEIGHT = 25;
+	public static final int HORIZONTAL_PADDING = 5;
 
-    /**
-     * A Node represents a node in a graph.
-     */
-    private static class Node {
-
-        private Point p;
-        private int r;
-        private Color color;
-        private Kind kind; 
-        private boolean selected = false;
-        private Rectangle b = new Rectangle();
+	NodeSet(Point p, String name, String[] champs){
+	    for (int i = 0; i < champs.length ; i++){
+		nodes.add(new Node(new Point(p.x + NodeSet.HORIZONTAL_PADDING, 
+					     p.y + NodeSet.HEADER_HEIGHT + i * Node.LINE_HEIGHT), 
+				   Node.RADIUS,
+				   champs[i]));
+	    }
+	    b = new Rectangle(p, new Dimension(0, 0));
+	    this.name = name;
+	}
 
         /**
-         * Construct a new node.
+         * Update each NodeSet's position by d (delta).
          */
-        public Node(Point p, int r, Color color, Kind kind) {
-            this.p = p;
-            this.r = r;
-            this.color = color;
-            this.kind = kind;
-            setBoundary(b);
+        public static void updatePosition(List<NodeSet> nodeSets, Point d) {
+            for (NodeSet ns : nodeSets) {
+                if (ns.isSelected()) {
+		    // Déplace le NodeSet
+		    ns.b.setLocation(ns.b.x + d.x, ns.b.y + d.y);
+		    
+
+		    // Déplace tous les Node du NodeSet
+		    Node.updatePosition(ns.nodes, d);
+                }
+            }
         }
+	
 
         /**
-         * Calculate this node's rectangular boundary.
-         */
-        private void setBoundary(Rectangle b) {
-            b.setBounds(p.x - r, p.y - r, 2 * r, 2 * r);
-        }
-
-        /**
-         * Draw this node.
+         * Draw this NodeSet.
          */
         public void draw(Graphics g) {
-            g.setColor(this.color);
-            if (this.kind == Kind.Table) {
-                g.fillRect(b.x, b.y, b.width, b.height);
-            }
+	    if (b.width == 0){ // On a encore jamais tracé le rectangle
+		FontMetrics fm = g.getFontMetrics();
+		int max_width = fm.stringWidth(name.toUpperCase());
+		for (Node n : nodes){
+		    max_width = Math.max(max_width, fm.stringWidth(n.getString()));
+		}
+		b.setSize(new Dimension(max_width + 2 * NodeSet.HORIZONTAL_PADDING + 2 * Node.RADIUS + Node.BETWEEN_SPACE, 
+					nodes.size() * (Node.LINE_HEIGHT) + NodeSet.HEADER_HEIGHT));
+	    }
+
+            g.setColor(Color.black);
+            g.drawRect(b.x, b.y, b.width, b.height);
+
+	    /* Header */
+	    g.setColor(Color.gray);
+	    g.fillRect(b.x, b.y+1, b.width, NodeSet.HEADER_HEIGHT - 1);
+	    g.setColor(Color.white);
+	    g.drawString(name.toUpperCase(), 
+			 b.x + NodeSet.HORIZONTAL_PADDING, 
+			 b.y + NodeSet.HEADER_HEIGHT - (NodeSet.HEADER_HEIGHT - Node.LINE_HEIGHT)/2);
+
+
+
             if (selected) {
                 g.setColor(Color.red);
-		// les -2 et +4 servent à avoir un rectangle plus
+		// les -2 et +3 servent à avoir un rectangle plus
 		// large autour d'un objet sélectionné
-                g.drawRect(b.x-2, b.y-2, b.width+3, b.height+3);
+                g.drawRect(b.x -2, b.y -2, b.width +4, b.height + 4);
             }
+	    g.setColor(Color.gray);
+	    for (Node n : nodes){
+		n.draw(g);
+	    }
         }
 
-        /**
-         * Return this node's location.
-         */
-        public Point getLocation() {
-            return p;
-        }
 
-        /**
-         * Return true if this node contains p.
-         */
-        public boolean contains(Point p) {
-            return b.contains(p);
-        }
 
         /**
          * Return true if this node is selected.
@@ -263,36 +284,34 @@ public class VisualQuery extends JComponent {
             this.selected = selected;
         }
 
+
         /**
-         * Collected all the selected nodes in list.
+         * Select each node in r.
          */
-        public static void getSelected(List<Node> list, List<Node> selected) {
-            selected.clear();
-            for (Node n : list) {
-                if (n.isSelected()) {
-                    selected.add(n);
-                }
+        public static void selectRect(List<NodeSet> list, Rectangle r) {
+            for (NodeSet ns : list) {
+                ns.setSelected(r.contains(ns.b));
             }
         }
 
         /**
-         * Select no nodes.
+         * Select no nodeSet.
          */
-        public static void selectNone(List<Node> list) {
-            for (Node n : list) {
-                n.setSelected(false);
+        public static void selectNone(List<NodeSet> list) {
+            for (NodeSet ns : list) {
+                ns.setSelected(false);
             }
         }
 
         /**
-         * Select a single node; return true if not already selected.
+         * Select a single NodeSet; return true if not already selected.
          */
-        public static boolean selectOne(List<Node> list, Point p) {
-            for (Node n : list) {
-                if (n.contains(p)) {
-                    if (!n.isSelected()) {
-                        Node.selectNone(list);
-                        n.setSelected(true);
+        public static boolean selectOne(List<NodeSet> list, Point p) {
+            for (NodeSet ns : list) {
+                if (ns.contains(p)) {
+                    if (!ns.isSelected()) {
+                        NodeSet.selectNone(list);
+                        ns.setSelected(true);
                     }
                     return true;
                 }
@@ -300,13 +319,39 @@ public class VisualQuery extends JComponent {
             return false;
         }
 
+
+        /**
+         * Toggle selected state of each node containing p.
+         */
+        public static void selectToggle(List<NodeSet> list, Point p) {
+            for (NodeSet ns : list) {
+                if (ns.contains(p)) {
+                    ns.setSelected(!ns.isSelected());
+                }
+            }
+        }
+
+
+        /**
+         * Return true if this nodeSet contains p.
+         */
+        public boolean contains(Point p) {
+            return b.contains(p);
+        }
+
+
         /**
          * Return the first found Node containing Point p
          */
-        public static Node getNodeFromPoint(List<Node> list, Point p) {
-            for (Node n : list) {
-                if (n.contains(p)) {
-                    return n;
+        public static Node getNodeFromPoint(List<NodeSet> list, Point p) {
+            for (NodeSet ns : list) {
+                if (ns.contains(p)) {
+		    System.out.println("Dans un NodeSet !");
+		    for (Node n : ns.nodes){
+			if (n.contains(p)){
+			    return n;
+			}
+		    }
                 }
             }
             return null;
@@ -314,74 +359,82 @@ public class VisualQuery extends JComponent {
 
 
 
+    }
 
+
+    /**
+     * A Node represents a node in a graph.
+     */
+    private static class Node {
+
+        private Point p;
+        private int r;
+	private String s;
+        private Rectangle b = new Rectangle();
+	public static final int BETWEEN_SPACE = 5;
+	public static final int LINE_HEIGHT = 12;
+	public static final int RADIUS = 5;
+
+	public String getString(){
+	    return s;
+	}
+	
         /**
-         * Select each node in r.
+         * Construct a new node.
          */
-        public static void selectRect(List<Node> list, Rectangle r) {
-            for (Node n : list) {
-                n.setSelected(r.contains(n.p));
-            }
+        public Node(Point p, int r, String s) {
+            this.p = p;
+            this.r = r;
+	    this.s = s;
+            setBoundary(b);
         }
 
         /**
-         * Toggle selected state of each node containing p.
+         * Calculate this node's rectangular boundary.
          */
-        public static void selectToggle(List<Node> list, Point p) {
-            for (Node n : list) {
-                if (n.contains(p)) {
-                    n.setSelected(!n.isSelected());
-                }
-            }
+        private void setBoundary(Rectangle b) {
+            b.setBounds(p.x, p.y, 2 * r, 2 * r);
         }
+
+        /**
+         * Draw this node.
+         */
+        public void draw(Graphics g) {
+            g.setColor(Color.black);
+	    g.drawString(s, p.x + 2*r + Node.BETWEEN_SPACE, p.y +2*r);
+            g.drawOval(p.x, p.y, 2*r, 2*r);
+        }
+
+        /**
+         * Return this node's location.
+         */
+        public Point getLocation() {
+            return p;
+        }
+
+
+
+        /**
+         * Return true if this node contains p.
+         */
+        public boolean contains(Point p) {
+            return b.contains(p);
+        }
+
+
 
         /**
          * Update each node's position by d (delta).
          */
         public static void updatePosition(List<Node> list, Point d) {
             for (Node n : list) {
-                if (n.isSelected()) {
-                    n.p.x += d.x;
-                    n.p.y += d.y;
-                    n.setBoundary(n.b);
-                }
-            }
-        }
-
-        /**
-         * Update each node's radius r.
-         */
-        public static void updateRadius(List<Node> list, int r) {
-            for (Node n : list) {
-                if (n.isSelected()) {
-                    n.r = r;
-                    n.setBoundary(n.b);
-                }
-            }
-        }
-
-        /**
-         * Update each node's color.
-         */
-        public static void updateColor(List<Node> list, Color color) {
-            for (Node n : list) {
-                if (n.isSelected()) {
-                    n.color = color;
-                }
-            }
-        }
-
-        /**
-         * Update each node's kind.
-         */
-        public static void updateKind(List<Node> list, Kind kind) {
-            for (Node n : list) {
-                if (n.isSelected()) {
-                    n.kind = kind;
-                }
-            }
-        }
+		n.p.x += d.x;
+		n.p.y += d.y;
+                n.setBoundary(n.b);
+	    }
+	}
     }
+    
 
 
     /**
@@ -401,9 +454,9 @@ public class VisualQuery extends JComponent {
             Point p1 = n1.getLocation();
             Point p2 = n2.getLocation();
             g.setColor(Color.gray);
-            g.drawLine(p1.x, p1.y, p2.x, p2.y);
+            g.drawLine(p1.x + Node.RADIUS, p1.y + Node.RADIUS, p2.x + Node.RADIUS, p2.y + Node.RADIUS);
+	    g.fillOval(p1.x, p1.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
+	    g.fillOval(p2.x, p2.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
         }
     }
-
-
 }

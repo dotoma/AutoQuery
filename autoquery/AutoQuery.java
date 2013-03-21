@@ -1,6 +1,8 @@
 package autoquery;
 
 /* GUI */
+import javax.swing.WindowConstants;
+import java.awt.EventQueue;
 import javax.swing.JSeparator;
 import javax.swing.JComponent;
 import javax.swing.JButton;
@@ -37,6 +39,9 @@ import java.util.List;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import javax.swing.tree.TreePath;
 import javax.swing.JOptionPane;
 import javax.swing.JFileChooser;
@@ -83,6 +88,7 @@ import autoquery.jedittextarea.*;
 
 /* Classe pour sauver en CSV */
 import au.com.bytecode.opencsv.CSVWriter;
+
 
 
 /**
@@ -145,7 +151,42 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
     JButton jb_historique;
     final JList jlist_historique;
     JScrollPane scrollPaneResultSet;
+    VisualQuery vquery;
+
+    public TreeMap <String, TreeMap<String, TreeSet<String>> > getDBTreeMap(){
+	return tm_arborescence_BDD;
+    }
     
+    public void setVisualQuery(VisualQuery vq){
+	vquery = vq;
+    }
+
+    public VisualQuery getVisualQuery(){
+	return vquery;
+    }
+
+
+    public void makeVisualQueryFrame(){
+	EventQueue.invokeLater(new Runnable() {
+		public void run() {
+		    JFrame f = new JFrame("VisualQuery");
+		    f.addWindowListener(new WindowAdapter(){
+			    @Override
+			    public void windowClosing(WindowEvent we){
+				AutoQuery.this.setVisualQuery(null);
+			    }
+			});
+		    VisualQuery vq = new VisualQuery();
+		    AutoQuery.this.setVisualQuery(vq);
+		    f.add(new JScrollPane(vq), BorderLayout.CENTER);
+		    f.pack();
+		    f.setLocationByPlatform(true);
+		    f.setVisible(true);
+		}
+	    });
+    }
+
+
     public void increaseKeyTABCount(){
 	keyTABCount++;
     }
@@ -662,8 +703,27 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 								}});	
 
 
+							/* Envoyer à VIsualQuery */
+							item = new JMenuItem("Envoyer à VisualQuery");
+							popup.add(item);	    
+							item.addActionListener(new ActionListener(){
+								public void actionPerformed(ActionEvent ae){
+								    if (getVisualQuery() == null){
+									AutoQuery.this.makeVisualQueryFrame();
+								    }
+								    VisualQuery vq = getVisualQuery();
+								    String [] champs = getDBTreeMap().get(s_schema).get(s_table).toArray(new String[0]);
+								    vq.addNodeSet(s_table, champs);
+								}});	
+
+
 							popup.show(jt_arborescence_BDD, e.getX(), e.getY());
 							popup.setVisible(true);
+
+
+
+
+
 							break;
 						case 4: 
 							System.out.println("Vous avez sélectionné le champ : " + (String) ((DefaultMutableTreeNode) selPath.getPathComponent(type-1)).getUserObject());
@@ -930,6 +990,26 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 	menu_requete.add(menu_requete_alias);
 
 
+
+	/** MENU OUTILS **/
+	JMenu menu_outils = new JMenu("Outils");
+	
+	/* LANCER VISUAL QUERY */
+	final JMenuItem menu_outils_visual_query = new JMenuItem("Visual Query...", KeyEvent.VK_V);
+	menu_outils_visual_query.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
+	menu_outils_visual_query.addActionListener(new ActionListener(){
+		public void actionPerformed(ActionEvent e){
+		    if (getVisualQuery() == null){
+			makeVisualQueryFrame();		    
+		    }
+		}
+	    });
+	menu_outils.add(menu_outils_visual_query);
+
+
+
+
+
 	/** Menu Aide **/
 	JMenu menu_aide = new JMenu("Aide");
 
@@ -950,6 +1030,7 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 	/* Ajout du menu à la fenêtre */
 	menu_bar.add(menu_requete);
 	menu_bar.add(menu_onglets);
+	menu_bar.add(menu_outils);
 	menu_bar.add(menu_aide);
        	add("North", menu_bar);
 
