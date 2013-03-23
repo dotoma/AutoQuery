@@ -20,7 +20,6 @@ BUGS :
 
 À FAIRE :
 - Visual Query
-   - transformer les arêtes en flèches
    - supprimer une flèche
    - typer une flèche (LEFT, INNER, RIGHT)
 - autoriser la saisie en minuscule (oui même pour les noms de table) (CGZ)
@@ -68,12 +67,13 @@ BUGS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
-- Visual Query
-   - dessiner les tables depuis menu contextuel de l'arbre
-   - retirer les tables par menu contextuel
-   - lier des tables par CTRL + drag
-   - sélectionner une arête
-   - highlight une arête sélectionnée
+- Visual Query (MAD)
+   - transformer les arêtes en flèches (MAD)
+   - dessiner les tables depuis menu contextuel de l'arbre (MAD)
+   - retirer les tables par menu contextuel (MAD)
+   - lier des tables par CTRL + drag (MAD)
+   - sélectionner une arête (MAD)
+   - highlight une arête sélectionnée (MAD)
 - FIX : détection des virgules avant FROM case-insensitive (MAD)
 - FIX : pas de menu contextuel dans le ResultSet sous Windows (GBA/CGZ)
 - FIX : cliquer sur l'étiquette du tab ne focusait pas l'éditeur de requêtes (MAD)

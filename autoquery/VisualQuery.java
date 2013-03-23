@@ -142,7 +142,7 @@ public class VisualQuery extends JComponent {
             if (e.isShiftDown()) {
 		/* Ajoute ou supprime un élément de la sélection */
 				NodeSet.selectToggle(nodeSets, mousePt);
-		//		String[] champs = {"Salut", "Comment", "Ça", "Va ?"};
+		//				String[] champs = {"Salut", "Comment", "Ça", "Va ?"};
 		//		addNodeSet("Coucou", champs);
 				// Me sert lorsque j'exécute VisualQuery en standalone, pour avoir des tables de jeu.
 
@@ -498,7 +498,8 @@ public class VisualQuery extends JComponent {
         private Node n2;
 	private boolean selected = false;
 	private final static int TOLERANCE = 10;
-
+	private final static int ARROW_HALF_WIDTH = 5;
+	private final static int ARROW_DEPTH = 15;
         public Edge(Node n1, Node n2) {
             this.n1 = n1;
             this.n2 = n2;
@@ -574,6 +575,21 @@ public class VisualQuery extends JComponent {
             g.drawLine(p1.x + Node.RADIUS, p1.y + Node.RADIUS, p2.x + Node.RADIUS, p2.y + Node.RADIUS);
 	    g.fillOval(p1.x, p1.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
 	    g.fillOval(p2.x, p2.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
+
+	    // Dessin du chapeau de la flèche
+	    double m = (double) (n2.p.y - n1.p.y) / (double) (n2.p.x - n1.p.x);
+	    double sx = Math.signum(n2.p.x - n1.p.x);
+	    double x3 = (n2.p.x + Node.RADIUS) - sx * (Edge.ARROW_DEPTH - m * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
+	    double y3 = (n2.p.y + Node.RADIUS) - sx * (Edge.ARROW_DEPTH * m + Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
+	    double x4 = x3 - sx * (2 * m * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
+	    double y4 = y3 + sx * (2 * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
+
+
+	    int[] x = {(int) x3, (int) x4, (int) n2.p.x + Node.RADIUS};
+	    int[] y = {(int) y3, (int) y4, (int) n2.p.y + Node.RADIUS};
+	    g.fillPolygon(x, y, 3);
+	    
+
         }
     }
 }
