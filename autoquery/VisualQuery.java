@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.ListIterator;
 import java.awt.event.*;
 import javax.swing.event.*;
 
@@ -116,30 +117,58 @@ public class VisualQuery extends JComponent {
 
 
     private class MouseHandler extends MouseAdapter{
+	private JPopupMenu popup;
+	private Action delete = new DeleteAction("Retirer la table");
+
+	public MouseHandler(){
+	    popup = new JPopupMenu();
+	    popup.add(new JMenuItem(delete));
+	}
+
+	private class DeleteAction extends AbstractAction{
+	    DeleteAction(String s){
+		super(s);
+	    }
+	    
+	    public void actionPerformed(ActionEvent e){
+		NodeSet.removeSelected(nodeSets, edges);
+		repaint();
+	    }
+	}
 
         @Override
         public void mousePressed(MouseEvent e) {
             mousePt = e.getPoint();
             if (e.isShiftDown()) {
-		/* Ajoute ou supprime un élément de la sélection
-		  Node.selectToggle(nodes, mousePt); */
+		/* Ajoute ou supprime un élément de la sélection */
+				NodeSet.selectToggle(nodeSets, mousePt);
+		//		String[] champs = {"Salut", "Comment", "Ça", "Va ?"};
+		//		addNodeSet("Coucou", champs);
+				// Me sert lorsque j'exécute VisualQuery en standalone, pour avoir des tables de jeu.
+
 		
             } else if (e.isControlDown()) {
 		connecting = true;
 		pendingConnectionStartPoint = pendingConnectionEndPoint =  e.getPoint();
 	    } else if (e.isPopupTrigger()) {
-		/* Si menu contextuel
-                Node.selectOne(nodes, mousePt);
-                showPopup(e); */
+		/* Si menu contextuel */
+		if (NodeSet.selectOne(nodeSets, mousePt)){
+		    showPopup(e); 
+		}
             } else if (NodeSet.selectOne(nodeSets, mousePt)) {
 		/* Sélectionne l'élément contenant le point du clic 
 		 si le clic est sur un élément */
+                selecting = false;
+	    } else if (Edge.selectOne(edges, mousePt)){
+		/* Sélectionne l'élément contenant le point du clic 
+		 si le clic est sur une arête */
                 selecting = false;
             } else {
 		/* Si le clic est hors de tout élément,
 		 on déselectionne tous les éléments et on passe
 		en mode sélection */
                 NodeSet.selectNone(nodeSets);
+		Edge.selectNone(edges);
                 selecting = true;
             }
             e.getComponent().repaint();
@@ -154,31 +183,32 @@ public class VisualQuery extends JComponent {
 	    selecting = false;
             mouseRect.setBounds(0, 0, 0, 0); // On change la taille du rectangle de sélection
 
+	    if (e.isPopupTrigger()) {
+		/* Si menu contextuel */
+		if (NodeSet.selectOne(nodeSets, mousePt)){
+		    showPopup(e); 
+		}
+	    }
 	    if (connecting){
-		connecting = false;
 		// Tester si on a connecté deux Nodes
 		Node n2 = NodeSet.getNodeFromPoint(nodeSets, e.getPoint());
 		if (n2 != null){
 		    Node n1 = NodeSet.getNodeFromPoint(nodeSets, pendingConnectionStartPoint);
 		    edges.add(new Edge(n1, n2));
 
-		    System.out.println("Connexion !");
 		} else {
-		    System.out.println("Pas de connexion :-(");
 		    
 		}
 		pendingConnectionStartPoint = pendingConnectionEndPoint = null;
 	    }
 
-	    // Si c'est un clic pour menu
-            if (e.isPopupTrigger()) {
-                //showPopup(e);
-            }
+	    connecting = false;
             e.getComponent().repaint();
         }
 
-	
-
+	private void showPopup(MouseEvent e){
+	    popup.show(e.getComponent(), e.getX(), e.getY());
+	}
     }
 
    
@@ -228,6 +258,30 @@ public class VisualQuery extends JComponent {
             }
         }
 	
+
+
+	public static void removeSelected(List<NodeSet> list, List<Edge> edges){
+            ListIterator<NodeSet> iter = list.listIterator();
+            while (iter.hasNext()) {
+                NodeSet ns = iter.next();
+                if (ns.isSelected()) {
+                    removeEdges(ns, edges);
+                    iter.remove();
+                }
+            }
+	}
+
+        public static void removeEdges(NodeSet ns, List<Edge> edges) {
+            ListIterator<Edge> iter = edges.listIterator();
+            while (iter.hasNext()) {
+                Edge e = iter.next();
+                if (ns.nodes.contains((Node) e.n1) || ns.nodes.contains((Node) e.n2)) {
+                    iter.remove();
+                }
+            }
+        }
+
+
 
         /**
          * Draw this NodeSet.
@@ -346,7 +400,6 @@ public class VisualQuery extends JComponent {
         public static Node getNodeFromPoint(List<NodeSet> list, Point p) {
             for (NodeSet ns : list) {
                 if (ns.contains(p)) {
-		    System.out.println("Dans un NodeSet !");
 		    for (Node n : ns.nodes){
 			if (n.contains(p)){
 			    return n;
@@ -366,7 +419,6 @@ public class VisualQuery extends JComponent {
      * A Node represents a node in a graph.
      */
     private static class Node {
-
         private Point p;
         private int r;
 	private String s;
@@ -444,16 +496,81 @@ public class VisualQuery extends JComponent {
 
         private Node n1;
         private Node n2;
+	private boolean selected = false;
+	private final static int TOLERANCE = 10;
 
         public Edge(Node n1, Node n2) {
             this.n1 = n1;
             this.n2 = n2;
         }
 
-        public void draw(Graphics g) {
+        /**
+         * Select a single Edge; return true if not already selected.
+         */
+        public static boolean selectOne(List<Edge> list, Point p) {
+            for (Edge e : list) {
+                if (e.contains(p)) {
+                    if (!e.isSelected()) {
+                        Edge.selectNone(list); // déselectionne les autres
+                        e.setSelected(true);
+                    }
+		    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Select no Edge.
+         */
+        public static void selectNone(List<Edge> list) {
+            for (Edge e : list) {
+                e.setSelected(false);
+            }
+        }
+
+
+	public boolean contains(Point p){
+	    if (p.x > Math.min(n1.p.x, n2.p.x) && 
+		p.x < Math.max(n1.p.x, n2.p.x) &&
+		p.y > Math.min(n1.p.y, n2.p.y) &&
+		p.y < Math.max(n1.p.y, n2.p.y)){
+		if (n2.p.x == n1.p.x){ // Si arête verticale
+		    return (Math.abs(p.x - n1.p.x) < Edge.TOLERANCE);
+		} else {
+		    double m = (double) (n2.p.y - n1.p.y) / (double) (n2.p.x - n1.p.x);		
+		    if (Math.abs( (p.y - n1.p.y) - m * (p.x - n1.p.x)) < Edge.TOLERANCE){
+			return true;
+		    }
+		}
+	    }
+	    return false;
+	}
+
+ 
+
+        /**
+         * Return true if this node is selected.
+         */
+        public boolean isSelected() {
+            return selected;
+        }
+
+        /**
+         * Mark this node as selected.
+         */
+        public void setSelected(boolean selected) {
+            this.selected = selected;
+        }
+
+       public void draw(Graphics g) {
             Point p1 = n1.getLocation();
             Point p2 = n2.getLocation();
-            g.setColor(Color.gray);
+            if (selected) {
+		g.setColor(Color.red);
+	    } else {
+		g.setColor(Color.gray);
+	    }
             g.drawLine(p1.x + Node.RADIUS, p1.y + Node.RADIUS, p2.x + Node.RADIUS, p2.y + Node.RADIUS);
 	    g.fillOval(p1.x, p1.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
 	    g.fillOval(p2.x, p2.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
