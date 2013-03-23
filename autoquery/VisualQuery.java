@@ -61,9 +61,6 @@ public class VisualQuery extends JComponent {
     public void paintComponent(Graphics g) {
         g.setColor(new Color(0x00f0f0f0));
         g.fillRect(0, 0, getWidth(), getHeight());
-    	for (Edge e : edges) {
-            e.draw(g);
-    	}
 	if (connecting){
 	    g.setColor(Color.red);
 	    g.drawLine(pendingConnectionStartPoint.x,
@@ -74,6 +71,12 @@ public class VisualQuery extends JComponent {
         for (NodeSet ns : nodeSets) {
             ns.draw(g);
         }
+
+	// Les relations après les tables pour qu'elles soient dessinées par dessus
+    	for (Edge e : edges) {
+            e.draw(g);
+    	}
+
         if (selecting) {
             g.setColor(Color.darkGray);
             g.drawRect(mouseRect.x, mouseRect.y,
@@ -117,21 +120,39 @@ public class VisualQuery extends JComponent {
 
 
     private class MouseHandler extends MouseAdapter{
-	private JPopupMenu popup;
-	private Action delete = new DeleteAction("Retirer la table");
+	private final static int TABLE = 0;
+	private final static int RELATION = 1;
+
+	// Popup des tables
+	private JPopupMenu popupNodeSet;
+	private Action deleteNodeSet = new DeleteAction("Retirer la table", TABLE);
+
+	// Popup des relations
+	private JPopupMenu popupEdge;
+	private Action deleteEdge = new DeleteAction("Retirer la relation", RELATION);
 
 	public MouseHandler(){
-	    popup = new JPopupMenu();
-	    popup.add(new JMenuItem(delete));
+	    popupNodeSet = new JPopupMenu();
+	    popupNodeSet.add(new JMenuItem(deleteNodeSet));
+	    popupEdge = new JPopupMenu();
+	    popupEdge.add(new JMenuItem(deleteEdge));
+	    
 	}
 
 	private class DeleteAction extends AbstractAction{
-	    DeleteAction(String s){
+	    int kind;
+
+	    DeleteAction(String s, int kind){
 		super(s);
+		this.kind = kind;
 	    }
 	    
 	    public void actionPerformed(ActionEvent e){
-		NodeSet.removeSelected(nodeSets, edges);
+		if (kind == MouseHandler.TABLE){
+		    NodeSet.removeSelected(nodeSets, edges);
+		} else if (kind == MouseHandler.RELATION){
+		    Edge.removeSelected(edges);
+		}
 		repaint();
 	    }
 	}
@@ -142,7 +163,7 @@ public class VisualQuery extends JComponent {
             if (e.isShiftDown()) {
 		/* Ajoute ou supprime un élément de la sélection */
 				NodeSet.selectToggle(nodeSets, mousePt);
-		//				String[] champs = {"Salut", "Comment", "Ça", "Va ?"};
+		//						String[] champs = {"Salut", "Comment", "Ça", "Va ?"};
 		//		addNodeSet("Coucou", champs);
 				// Me sert lorsque j'exécute VisualQuery en standalone, pour avoir des tables de jeu.
 
@@ -153,7 +174,9 @@ public class VisualQuery extends JComponent {
 	    } else if (e.isPopupTrigger()) {
 		/* Si menu contextuel */
 		if (NodeSet.selectOne(nodeSets, mousePt)){
-		    showPopup(e); 
+		    showPopupNodeSet(e); 
+		} else if (Edge.selectOne(edges, mousePt)){
+		    showPopupEdge(e); 
 		}
             } else if (NodeSet.selectOne(nodeSets, mousePt)) {
 		/* Sélectionne l'élément contenant le point du clic 
@@ -186,8 +209,11 @@ public class VisualQuery extends JComponent {
 	    if (e.isPopupTrigger()) {
 		/* Si menu contextuel */
 		if (NodeSet.selectOne(nodeSets, mousePt)){
-		    showPopup(e); 
+		    showPopupNodeSet(e); 
+		} else if (Edge.selectOne(edges, mousePt)){
+		    showPopupEdge(e); 
 		}
+
 	    }
 	    if (connecting){
 		// Tester si on a connecté deux Nodes
@@ -206,9 +232,14 @@ public class VisualQuery extends JComponent {
             e.getComponent().repaint();
         }
 
-	private void showPopup(MouseEvent e){
-	    popup.show(e.getComponent(), e.getX(), e.getY());
+	private void showPopupNodeSet(MouseEvent e){
+	    popupNodeSet.show(e.getComponent(), e.getX(), e.getY());
 	}
+
+	private void showPopupEdge(MouseEvent e){
+	    popupEdge.show(e.getComponent(), e.getX(), e.getY());
+	}
+
     }
 
    
@@ -504,6 +535,18 @@ public class VisualQuery extends JComponent {
             this.n1 = n1;
             this.n2 = n2;
         }
+
+
+	public static void removeSelected(List<Edge> list){
+            ListIterator<Edge> iter = list.listIterator();
+            while (iter.hasNext()) {
+                Edge e = iter.next();
+                if (e.isSelected()) {
+                    iter.remove();
+                }
+            }
+	}
+
 
         /**
          * Select a single Edge; return true if not already selected.
