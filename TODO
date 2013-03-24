@@ -20,7 +20,6 @@ BUGS :
 
 À FAIRE :
 - Visual Query
-   - supprimer une flèche
    - typer une flèche (LEFT, INNER, RIGHT)
 - autoriser la saisie en minuscule (oui même pour les noms de table) (CGZ)
 - enregistrer le mot de passe (CGZ)
@@ -68,6 +67,7 @@ BUGS :
 
 FAIT :
 - Visual Query (MAD)
+   - supprimer une flèche
    - transformer les arêtes en flèches (MAD)
    - dessiner les tables depuis menu contextuel de l'arbre (MAD)
    - retirer les tables par menu contextuel (MAD)

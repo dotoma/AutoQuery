@@ -26,7 +26,6 @@ public class VisualQuery extends JComponent {
 
     
     private List<NodeSet> nodeSets = new ArrayList<NodeSet>();
-    private List<NodeSet> selected = new ArrayList<NodeSet>();
     private List<Edge> edges = new ArrayList<Edge>();
     
 
@@ -130,14 +129,35 @@ public class VisualQuery extends JComponent {
 	// Popup des relations
 	private JPopupMenu popupEdge;
 	private Action deleteEdge = new DeleteAction("Retirer la relation", RELATION);
+	private Action changeRelationTypeToLeftJoin = new ChangeRelationType("LEFT JOIN", Edge.LEFT);
+	private Action changeRelationTypeToRightJoin = new ChangeRelationType("RIGHT JOIN", Edge.RIGHT);
+	private Action changeRelationTypeToInnerJoin = new ChangeRelationType("INNER JOIN", Edge.INNER);
 
 	public MouseHandler(){
 	    popupNodeSet = new JPopupMenu();
 	    popupNodeSet.add(new JMenuItem(deleteNodeSet));
 	    popupEdge = new JPopupMenu();
 	    popupEdge.add(new JMenuItem(deleteEdge));
+	    popupEdge.add(new JMenuItem(changeRelationTypeToLeftJoin));
+	    popupEdge.add(new JMenuItem(changeRelationTypeToRightJoin));
+	    popupEdge.add(new JMenuItem(changeRelationTypeToInnerJoin));
 	    
 	}
+
+	private class ChangeRelationType extends AbstractAction{
+	    int type;
+
+	    ChangeRelationType(String s, int type){
+		super(s);
+		this.type = type;
+	    }
+	    
+	    public void actionPerformed(ActionEvent e){
+		Edge.changeTypeOfSelected(edges, type);
+		repaint();
+	    }
+	}
+
 
 	private class DeleteAction extends AbstractAction{
 	    int kind;
@@ -162,8 +182,8 @@ public class VisualQuery extends JComponent {
             mousePt = e.getPoint();
             if (e.isShiftDown()) {
 		/* Ajoute ou supprime un élément de la sélection */
-				NodeSet.selectToggle(nodeSets, mousePt);
-		//						String[] champs = {"Salut", "Comment", "Ça", "Va ?"};
+		//		NodeSet.selectToggle(nodeSets, mousePt);
+		//String[] champs = {"Salut", "Comment", "Ça", "Va ?"};
 		//		addNodeSet("Coucou", champs);
 				// Me sert lorsque j'exécute VisualQuery en standalone, pour avoir des tables de jeu.
 
@@ -527,14 +547,30 @@ public class VisualQuery extends JComponent {
 
         private Node n1;
         private Node n2;
+	private int relationType = Edge.LEFT;
 	private boolean selected = false;
 	private final static int TOLERANCE = 10;
 	private final static int ARROW_HALF_WIDTH = 5;
 	private final static int ARROW_DEPTH = 15;
+	private final static int JOIN_SIZE = 10;
+	public final static int LEFT = 0;
+	public final static int RIGHT = 1;
+	public final static int INNER = 2;
+
         public Edge(Node n1, Node n2) {
             this.n1 = n1;
             this.n2 = n2;
         }
+
+
+
+	public static void changeTypeOfSelected(List<Edge> list, int type){
+	    for (Edge e : list){
+		if (e.isSelected()){
+		    e.relationType = type;
+		}
+	    }
+	}
 
 
 	public static void removeSelected(List<Edge> list){
@@ -619,6 +655,7 @@ public class VisualQuery extends JComponent {
 	    g.fillOval(p1.x, p1.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
 	    g.fillOval(p2.x, p2.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
 
+
 	    // Dessin du chapeau de la flèche
 	    double m = (double) (n2.p.y - n1.p.y) / (double) (n2.p.x - n1.p.x);
 	    double sx = Math.signum(n2.p.x - n1.p.x);
@@ -626,13 +663,33 @@ public class VisualQuery extends JComponent {
 	    double y3 = (n2.p.y + Node.RADIUS) - sx * (Edge.ARROW_DEPTH * m + Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
 	    double x4 = x3 - sx * (2 * m * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
 	    double y4 = y3 + sx * (2 * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
-
-
 	    int[] x = {(int) x3, (int) x4, (int) n2.p.x + Node.RADIUS};
 	    int[] y = {(int) y3, (int) y4, (int) n2.p.y + Node.RADIUS};
 	    g.fillPolygon(x, y, 3);
 	    
 
+
+	    // Dessin du type de relation
+	    int milieux = Node.RADIUS + (n1.p.x + n2.p.x) / 2;
+	    int milieuy = Node.RADIUS + (n1.p.y + n2.p.y) / 2;
+	    g.setColor(Color.gray);
+	    g.fillRoundRect(milieux - Edge.JOIN_SIZE,
+			    milieuy - Edge.JOIN_SIZE,
+			    2 * Edge.JOIN_SIZE,
+			    2 * Edge.JOIN_SIZE,
+			    Node.RADIUS,
+			    Node.RADIUS);
+	    if (selected) {
+		g.setColor(Color.red);
+	    } else {
+		g.setColor(Color.black);
+	    }
+	    g.drawRoundRect(milieux - Edge.JOIN_SIZE,
+			    milieuy - Edge.JOIN_SIZE,
+			    2 * Edge.JOIN_SIZE,
+			    2 * Edge.JOIN_SIZE,
+			    Node.RADIUS,
+			    Node.RADIUS);
         }
     }
 }
