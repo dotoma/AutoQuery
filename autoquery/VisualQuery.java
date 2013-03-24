@@ -16,6 +16,10 @@ import javax.swing.event.*;
 public class VisualQuery extends JComponent {
     private static final int WIDE = 640;
     private static final int HIGH = 480;
+
+
+    JFrame parentFrame;
+
     private Rectangle mouseRect = new Rectangle();
     private boolean selecting = false;
     private boolean connecting = false;
@@ -35,7 +39,7 @@ public class VisualQuery extends JComponent {
             public void run() {
                 JFrame f = new JFrame("VisualQuery");
                 f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                VisualQuery vq = new VisualQuery();
+                VisualQuery vq = new VisualQuery(f);
                 f.add(new JScrollPane(vq), BorderLayout.CENTER);
                 f.pack();
                 f.setLocationByPlatform(true);
@@ -48,10 +52,11 @@ public class VisualQuery extends JComponent {
         return new Dimension(WIDE, HIGH);
     }
 
-    public VisualQuery() {
+    public VisualQuery(JFrame f) {
         this.setOpaque(true);
         this.addMouseListener(new MouseHandler());
         this.addMouseMotionListener(new MouseMotionHandler());
+	this.parentFrame = f;
     }
 
     
@@ -240,8 +245,20 @@ public class VisualQuery extends JComponent {
 		Node n2 = NodeSet.getNodeFromPoint(nodeSets, e.getPoint());
 		if (n2 != null){
 		    Node n1 = NodeSet.getNodeFromPoint(nodeSets, pendingConnectionStartPoint);
-		    edges.add(new Edge(n1, n2));
-
+		    if(NodeSet.existsPath(n1.getNodeSet(), 
+					  n2.getNodeSet(), 
+					  nodeSets, 
+					  Edge.edgesBetween(n1.getNodeSet(), n2.getNodeSet(), edges), 
+					  edges)){
+			System.out.println("Cycle !");
+			JOptionPane.showMessageDialog(VisualQuery.this.parentFrame,
+						      "Joindre ces deux tables créerait un cycle.",
+						      "Jointure interdite",
+						      JOptionPane.ERROR_MESSAGE);			
+		    } else {
+			edges.add(new Edge(n1, n2));
+		    }
+			
 		} else {
 		    
 		}
@@ -287,7 +304,8 @@ public class VisualQuery extends JComponent {
 		nodes.add(new Node(new Point(p.x + NodeSet.HORIZONTAL_PADDING, 
 					     p.y + NodeSet.HEADER_HEIGHT + i * Node.LINE_HEIGHT), 
 				   Node.RADIUS,
-				   champs[i]));
+				   champs[i],
+				   this));
 	    }
 	    b = new Rectangle(p, new Dimension(0, 0));
 	    this.name = name;
@@ -309,6 +327,51 @@ public class VisualQuery extends JComponent {
             }
         }
 	
+
+	/* Détection de chemin entre NS1 et NS2 */
+	public static boolean existsPath(NodeSet ns1, NodeSet ns2, List<NodeSet> nodeSets, List<Edge> visitedEdges, List<Edge> edges){
+	    System.out.println("Début fonction --- NodeSet : " + ns2.hashCode());
+	    for (Edge e : edges){
+		if (!visitedEdges.contains(e)){
+		    System.out.println("Visite d'arête : " +  
+				       e.n1.getNodeSet().hashCode() + " --> " +
+				       e.n2.getNodeSet().hashCode());
+		    
+		    Node n_s = null;
+		    Node n_d = null;; //source, destination 
+		    if (ns2.nodes.contains(e.n1)){// Si e a une extremité dans ns2
+			n_s = e.n1;
+			n_d = e.n2;
+			
+		    } else if (ns2.nodes.contains(e.n2)){ 
+			n_s = e.n2;
+			n_d = e.n1;		
+		    }
+		    
+		    if (n_s != null){ // Si on a trouvé une arête
+			// trouver le NodeSet destination
+			NodeSet ns_d = n_d.getNodeSet();
+
+			if (ns_d == ns1){
+			    return true;
+			} else {
+			    visitedEdges.add(e);
+			    if (existsPath(ns1, ns_d, nodeSets, visitedEdges, edges)) return true;
+			}
+			
+		    } else {
+			System.out.println("Ne part pas du bon NodeSet : " + ns2.hashCode());		
+		    }
+		} else {
+		    System.out.println("Arête déjà visitée : " +
+				       e.n1.getNodeSet().hashCode() + " --> " +
+				       e.n2.getNodeSet().hashCode());		    
+		}
+	    }
+	    return false;
+	}
+
+
 
 
 	public static void removeSelected(List<NodeSet> list, List<Edge> edges){
@@ -474,6 +537,7 @@ public class VisualQuery extends JComponent {
         private int r;
 	private String s;
         private Rectangle b = new Rectangle();
+	private NodeSet nodeSet;
 	public static final int BETWEEN_SPACE = 5;
 	public static final int LINE_HEIGHT = 12;
 	public static final int RADIUS = 5;
@@ -485,12 +549,17 @@ public class VisualQuery extends JComponent {
         /**
          * Construct a new node.
          */
-        public Node(Point p, int r, String s) {
+        public Node(Point p, int r, String s, NodeSet ns) {
             this.p = p;
             this.r = r;
 	    this.s = s;
+	    this.nodeSet = ns;
             setBoundary(b);
         }
+
+	public NodeSet getNodeSet(){
+	    return nodeSet;
+	}
 
         /**
          * Calculate this node's rectangular boundary.
@@ -563,6 +632,18 @@ public class VisualQuery extends JComponent {
         }
 
 
+	public static List<Edge> edgesBetween(NodeSet ns1, NodeSet ns2, List<Edge> list){
+	    List<Edge> retour = new ArrayList<Edge>();
+	    for (Edge e : list){
+		if ((e.n1.getNodeSet() == ns1 && e.n2.getNodeSet() == ns2) ||
+		    (e.n2.getNodeSet() == ns1 && e.n1.getNodeSet() == ns2)){
+		    retour.add(e);
+		}
+	    }
+	    return retour;
+
+	}
+
 
 	public static void changeTypeOfSelected(List<Edge> list, int type){
 	    for (Edge e : list){
@@ -611,15 +692,15 @@ public class VisualQuery extends JComponent {
 
 
 	public boolean contains(Point p){
-	    if (p.x > Math.min(n1.p.x, n2.p.x) && 
-		p.x < Math.max(n1.p.x, n2.p.x) &&
-		p.y > Math.min(n1.p.y, n2.p.y) &&
-		p.y < Math.max(n1.p.y, n2.p.y)){
+	    if (p.x > Math.min(n1.p.x + Node.RADIUS, n2.p.x + Node.RADIUS) && 
+		p.x < Math.max(n1.p.x + Node.RADIUS, n2.p.x + Node.RADIUS) &&
+		p.y > Math.min(n1.p.y + Node.RADIUS, n2.p.y + Node.RADIUS) &&
+		p.y < Math.max(n1.p.y + Node.RADIUS, n2.p.y + Node.RADIUS)){
 		if (n2.p.x == n1.p.x){ // Si arête verticale
-		    return (Math.abs(p.x - n1.p.x) < Edge.TOLERANCE);
+		    return (Math.abs(p.x - (n1.p.x + Node.RADIUS)) < Edge.TOLERANCE);
 		} else {
 		    double m = (double) (n2.p.y - n1.p.y) / (double) (n2.p.x - n1.p.x);		
-		    if (Math.abs( (p.y - n1.p.y) - m * (p.x - n1.p.x)) < Edge.TOLERANCE){
+		    if (Math.abs( (p.y - (n1.p.y + Node.RADIUS)) - m * (p.x - (n1.p.x + Node.RADIUS))) < Edge.TOLERANCE){
 			return true;
 		    }
 		}
