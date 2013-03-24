@@ -20,7 +20,7 @@ BUGS :
 
 À FAIRE :
 - Visual Query
-   - typer une flèche (LEFT, INNER, RIGHT)
+   - générer une requête
 - autoriser la saisie en minuscule (oui même pour les noms de table) (CGZ)
 - enregistrer le mot de passe (CGZ)
 - CTRL-Z dans le JEditTextArea (CGZ)
@@ -67,6 +67,7 @@ BUGS :
 
 FAIT :
 - Visual Query (MAD)
+   - typer une flèche (LEFT, INNER, RIGHT)
    - supprimer une flèche
    - transformer les arêtes en flèches (MAD)
    - dessiner les tables depuis menu contextuel de l'arbre (MAD)

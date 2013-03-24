@@ -182,8 +182,8 @@ public class VisualQuery extends JComponent {
             mousePt = e.getPoint();
             if (e.isShiftDown()) {
 		/* Ajoute ou supprime un élément de la sélection */
-		//		NodeSet.selectToggle(nodeSets, mousePt);
-		//String[] champs = {"Salut", "Comment", "Ça", "Va ?"};
+				NodeSet.selectToggle(nodeSets, mousePt);
+		//		String[] champs = {"Salut", "Comment", "Ça", "Va ?"};
 		//		addNodeSet("Coucou", champs);
 				// Me sert lorsque j'exécute VisualQuery en standalone, pour avoir des tables de jeu.
 
@@ -670,6 +670,7 @@ public class VisualQuery extends JComponent {
 
 
 	    // Dessin du type de relation
+	    // Le carré
 	    int milieux = Node.RADIUS + (n1.p.x + n2.p.x) / 2;
 	    int milieuy = Node.RADIUS + (n1.p.y + n2.p.y) / 2;
 	    g.setColor(Color.gray);
@@ -690,6 +691,25 @@ public class VisualQuery extends JComponent {
 			    2 * Edge.JOIN_SIZE,
 			    Node.RADIUS,
 			    Node.RADIUS);
+	    // L'intérieur du carré
+	    g.setColor(Color.white);
+	    String s = null;
+	    switch(relationType){
+	    case Edge.LEFT : 
+		s = "LJ";
+		break;
+	    case Edge.RIGHT :
+		s = "RJ";
+		break;
+	    case Edge.INNER :
+		s = "IJ";
+		break;
+	    }
+	    FontMetrics fm = g.getFontMetrics();
+	    int width = fm.stringWidth(s);
+	    g.drawString(s, 
+			 milieux - Edge.JOIN_SIZE + (2 * Edge.JOIN_SIZE - width) / 2,
+			 milieuy + Edge.JOIN_SIZE - (int) ((2 * Edge.JOIN_SIZE - 0.8 * fm.getHeight()) / 2));
         }
     }
 }
