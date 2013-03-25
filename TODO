@@ -19,8 +19,6 @@ BUGS :
 	at java.lang.Thread.run(Thread.java:662)
 
 À FAIRE :
-- Visual Query
-   - générer une requête
 - autoriser la saisie en minuscule (oui même pour les noms de table) (CGZ)
 - enregistrer le mot de passe (CGZ)
 - CTRL-Z dans le JEditTextArea (CGZ)
@@ -67,6 +65,8 @@ BUGS :
 
 FAIT :
 - Visual Query (MAD)
+   - générer une requête en cliquant sur la table de départ (MAD)
+      - prend en compte les conditions supplémentaires (MAD)
    - détecter et interdire les cycles (MAD)
    - typer une flèche (LEFT, INNER, RIGHT) (MAD)
    - supprimer une flèche (MAD)

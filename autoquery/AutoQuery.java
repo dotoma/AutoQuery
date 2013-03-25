@@ -176,7 +176,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 				AutoQuery.this.setVisualQuery(null);
 			    }
 			});
-		    VisualQuery vq = new VisualQuery();
+		    VisualQuery vq = new VisualQuery(f);
 		    AutoQuery.this.setVisualQuery(vq);
 		    f.add(new JScrollPane(vq), BorderLayout.CENTER);
 		    f.pack();
