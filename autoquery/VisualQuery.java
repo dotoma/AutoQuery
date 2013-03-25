@@ -53,13 +53,37 @@ public class VisualQuery extends JComponent {
         return new Dimension(WIDE, HIGH);
     }
 
+
+    private Action toQueryAction = new Queryfy("Générer la requête");
+    private class Queryfy extends AbstractAction{
+	Queryfy(String s){
+	    super(s);
+	}
+	
+	public void actionPerformed(ActionEvent e){
+	    System.out.println(toQuery());
+	}
+    }
+    
     public VisualQuery(JFrame f) {
+	JMenuBar menu_bar = new JMenuBar();
+	JMenu menu_outils = new JMenu("Outils");
+	menu_bar.add(menu_outils);
+	menu_outils.add(new JMenuItem(toQueryAction));
+	f.setJMenuBar(menu_bar);
+
         this.setOpaque(true);
         this.addMouseListener(new MouseHandler());
         this.addMouseMotionListener(new MouseMotionHandler());
 	this.parentFrame = f;
     }
 
+
+    public String toQuery(){
+	StringBuffer retour = new StringBuffer("SELECT\n\t*\nFROM ");
+	retour.append(toQuery(NodeSet.getFirst(), new ArrayList<Edge>()));
+	return retour.toString();		      
+    }
 
 
     /* Transcrire le schéma en requête MySQL */
@@ -79,7 +103,7 @@ public class VisualQuery extends JComponent {
 	    } 
 	    
 	    if (n_s != null){ // Si on a trouvé une arête
-		retour.append(" " + e.getRepresentation() + " ");
+		retour.append("\n" + e.getRepresentation() + " ");
 		
 		List<Edge> list = Edge.edgesBetween(first, n_d.getNodeSet(), edges);
 		int size = list.size();
@@ -93,7 +117,7 @@ public class VisualQuery extends JComponent {
 		    visitedEdges.add(list.get(0));
 		    for (int i = 1; i < size ; i++){		    
 			Edge cond = list.get(i);    
-			retour.append(" AND ");
+			retour.append("\n\tAND ");
 			retour.append(cond.n1.getNodeSet().getAlias() + "." + cond.n1.getName());
 			retour.append(" " + cond.getConditionRepresentation() + " ");
 			retour.append(cond.n2.getNodeSet().getAlias() + "." + cond.n2.getName());
@@ -115,13 +139,13 @@ public class VisualQuery extends JComponent {
         g.setColor(new Color(0x00f0f0f0));
         g.fillRect(0, 0, getWidth(), getHeight());
 	if (joining){
-	    g.setColor(Color.red);
+	    g.setColor(Color.RED);
 	    g.drawLine(pendingConnectionStartPoint.x,
 		       pendingConnectionStartPoint.y,
 		       pendingConnectionEndPoint.x,
 		       pendingConnectionEndPoint.y);
 	} else if (addingRelation){
-	    g.setColor(Color.blue);
+	    g.setColor(Color.BLUE);
 	    g.drawLine(pendingConnectionStartPoint.x,
 		       pendingConnectionStartPoint.y,
 		       pendingConnectionEndPoint.x,
@@ -138,7 +162,7 @@ public class VisualQuery extends JComponent {
     	}
 
         if (selecting) {
-            g.setColor(Color.darkGray);
+            g.setColor(Color.DARK_GRAY);
             g.drawRect(mouseRect.x, mouseRect.y,
                 mouseRect.width, mouseRect.height);
         }
@@ -204,11 +228,12 @@ public class VisualQuery extends JComponent {
     private class MouseHandler extends MouseAdapter{
 	private final static int TABLE = 0;
 	private final static int EDGE = 1;
+	Point origineMenu;
 
 	// Popup des tables
 	private JPopupMenu popupNodeSet;
 	private Action deleteNodeSet = new DeleteAction("Retirer la table", MouseHandler.TABLE);
-	private Action toQueryFromNodeSet = new Queryfy("Générer la requête");
+	private Action setFirstNodeSetAction = new FirstNodeSetAction("Table initiale");
 
 	// Popup des Edge
 	// Join Edge
@@ -229,7 +254,7 @@ public class VisualQuery extends JComponent {
 	public MouseHandler(){
 	    popupNodeSet = new JPopupMenu();
 	    popupNodeSet.add(new JMenuItem(deleteNodeSet));
-	    popupNodeSet.add(new JMenuItem(toQueryFromNodeSet));
+	    popupNodeSet.add(new JMenuItem(setFirstNodeSetAction));
 
 	    popupJoinEdge = new JPopupMenu();
 	    popupJoinEdge.add(new JMenuItem(deleteEdge));
@@ -248,19 +273,23 @@ public class VisualQuery extends JComponent {
 	    popupRelationEdge.add(menu_change_relation);
 	}
 
-	private class Queryfy extends AbstractAction{
-	    Queryfy(String s){
+	private class FirstNodeSetAction extends AbstractAction{
+	    FirstNodeSetAction(String s){
 		super(s);
 	    }
 
-	    public void actionPerformed(ActionEvent e){
-		for (NodeSet ns : nodeSets){
-		    if (ns.isSelected()){
-			System.out.println(toQuery(ns, new ArrayList<Edge>()));
-			break;
-		    }
+	    public void actionPerformed(ActionEvent ae){
+		System.out.println("Origine du menu : " + origineMenu.toString());
+		
+		NodeSet ns = NodeSet.getNodeSetFromPoint(origineMenu, nodeSets);
+		if (ns != null){
+		    NodeSet.setFirst(ns);
+		} else {
+		    System.out.println("Aucun NodeSet trouvé");
 		}
+		repaint();
 	    }
+
 	}
 
 	private class ChangeRelationType extends AbstractAction{
@@ -402,10 +431,12 @@ public class VisualQuery extends JComponent {
         }
 
 	private void showPopupNodeSet(MouseEvent e){
+	    origineMenu = new Point(e.getX(), e.getY());
 	    popupNodeSet.show(e.getComponent(), e.getX(), e.getY());
 	}
 
 	private void showPopupEdge(MouseEvent e){
+	    origineMenu = new Point(e.getX(), e.getY());
 	    Edge edge = Edge.getEdgeFromPoint(edges, e.getPoint());
 	    if (edge.isJoinType()){
 		popupJoinEdge.show(e.getComponent(), e.getX(), e.getY());
@@ -425,6 +456,7 @@ public class VisualQuery extends JComponent {
 	private String name;
 	private String alias;
 	public static int compteur = 0;
+	private static NodeSet first = null;
 	public static final int HEADER_HEIGHT = 25;
 	public static final int HORIZONTAL_PADDING = 5;
 
@@ -447,11 +479,23 @@ public class VisualQuery extends JComponent {
 	    b = new Rectangle(p, new Dimension(0, 0));
 	    this.name = name;
 	    this.alias = name + Integer.toString(++compteur);
+	    if (NodeSet.first == null){
+		NodeSet.first = this;
+	    }
 	}
 
 
-	
+	public static NodeSet getFirst(){
+	    return first;
+	}
 
+	public static void setFirst(NodeSet ns){
+	    first = ns;
+	}
+
+	public boolean isFirst(){
+	    return (this == first);
+	}
 
 
         /**
@@ -550,32 +594,37 @@ public class VisualQuery extends JComponent {
 		for (Node n : nodes){
 		    max_width = Math.max(max_width, fm.stringWidth(n.getName()));
 		}
-		b.setSize(new Dimension(max_width + 2 * NodeSet.HORIZONTAL_PADDING + 2 * Node.RADIUS + Node.BETWEEN_SPACE, 
+		int width = max_width + 2 * NodeSet.HORIZONTAL_PADDING + 2 * (2 * Node.RADIUS + Node.BETWEEN_SPACE);
+		b.setSize(new Dimension(width, 
 					nodes.size() * (Node.LINE_HEIGHT) + NodeSet.HEADER_HEIGHT));
 	    }
 
-            g.setColor(Color.black);
+            g.setColor(Color.BLACK);
             g.drawRect(b.x, b.y, b.width, b.height);
 
 	    /* Header */
-	    g.setColor(Color.gray);
+	    if (isFirst()){
+		g.setColor(Color.BLACK);
+	    } else {
+		g.setColor(Color.GRAY);
+	    }
 	    g.fillRect(b.x, b.y+1, b.width, NodeSet.HEADER_HEIGHT - 1);
-	    g.setColor(Color.white);
+	    g.setColor(Color.WHITE);
 	    g.drawString(name.toUpperCase(), 
 			 b.x + NodeSet.HORIZONTAL_PADDING, 
 			 b.y + NodeSet.HEADER_HEIGHT - (NodeSet.HEADER_HEIGHT - Node.LINE_HEIGHT)/2);
 
 
-
             if (selected) {
-                g.setColor(Color.red);
+                g.setColor(Color.RED);
 		// les -2 et +3 servent à avoir un rectangle plus
-		// large autour d'un objet sélectionné
+		// large autour d'un NodeSet sélectionné
                 g.drawRect(b.x -2, b.y -2, b.width +4, b.height + 4);
             }
-	    g.setColor(Color.gray);
+
+	    g.setColor(Color.GRAY);
 	    for (Node n : nodes){
-		n.draw(g);
+		n.draw(g, b.width);
 	    }
         }
 
@@ -642,6 +691,15 @@ public class VisualQuery extends JComponent {
             }
         }
 
+	public static NodeSet getNodeSetFromPoint(Point p, List<NodeSet> list){
+	    for (NodeSet ns : list){
+		if (ns.contains(p)){
+		    return ns;
+		}
+	    }
+	    return null;
+	}
+
 
         /**
          * Return true if this nodeSet contains p.
@@ -676,7 +734,7 @@ public class VisualQuery extends JComponent {
      * A Node represents a node in a graph.
      */
     private static class Node {
-        private Point p;
+        private Point p; // g pour gauche
         private int r;
 	private String s;
         private Rectangle b = new Rectangle();
@@ -711,14 +769,53 @@ public class VisualQuery extends JComponent {
             b.setBounds(p.x, p.y, 2 * r, 2 * r);
         }
 
+
+	/* Renvoie les points haut gauche des Nodes 
+	 à partir desquels calculer l'Edge */
+	public static Point[] getPointsFromNodes(Node n1, Node n2){
+	    Point p1 = n1.p;
+	    Point p2 = n2.p;
+	    double min = Point.distanceSq(n1.p.x, n1.p.y, n2.p.x, n2.p.y);
+	    double tmp = Point.distanceSq(n1.p.x, n1.p.y, n2.p.x + n2.getInterspace(), n2.p.y);
+	    if (tmp < min){
+		min = tmp;
+		p2 = new Point(n2.p.x + n2.getInterspace(), n2.p.y);
+	    }
+	    tmp = Point.distanceSq(n1.p.x + n1.getInterspace(), n1.p.y, n2.p.x, n2.p.y);
+	    if (tmp < min){
+		min = tmp;
+		p1 = new Point(n1.p.x + n1.getInterspace(), n1.p.y);
+		p2 = n2.p;
+	    }
+	    tmp = Point.distanceSq(n1.p.x + n1.getInterspace(), n1.p.y, n2.p.x + n2.getInterspace(), n2.p.y);
+	    if (tmp < min){
+		min = tmp;
+		p1 = new Point(n1.p.x + n1.getInterspace(), n1.p.y);
+		p2 = new Point(n2.p.x + n2.getInterspace(), n2.p.y);
+	    }
+	    
+	    return new Point[] {p1, p2};
+	}
+
+
+
         /**
          * Draw this node.
          */
-        public void draw(Graphics g) {
-            g.setColor(Color.black);
+        public void draw(Graphics g, int width) {
+            g.setColor(Color.BLACK);
 	    g.drawString(s, p.x + 2*r + Node.BETWEEN_SPACE, p.y +2*r);
+	    // Rond de gauche
             g.drawOval(p.x, p.y, 2*r, 2*r);
+	    // Rond de droite
+            g.drawOval(p.x + getInterspace(),// - NodeSet.HORIZONTAL_PADDING + width - NodeSet.HORIZONTAL_PADDING - 2*r, 
+		       p.y, 2*r, 2*r);
         }
+
+	public void fill(Graphics g){
+	    g.fillOval(p.x, p.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
+	    g.fillOval(p.x + getInterspace(), p.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
+	}
 
         /**
          * Return this node's location.
@@ -727,16 +824,19 @@ public class VisualQuery extends JComponent {
             return p;
         }
 
-
+	
 
         /**
          * Return true if this node contains p.
          */
         public boolean contains(Point p) {
-            return b.contains(p);
+            return (b.contains(p) || b.contains(new Point(p.x - getInterspace(), p.y)));
         }
 
 
+	public int getInterspace(){
+	    return (nodeSet.b.width - (2 * NodeSet.HORIZONTAL_PADDING + 2 * r));
+	}
 
         /**
          * Update each node's position by d (delta).
@@ -897,15 +997,18 @@ public class VisualQuery extends JComponent {
 
 
 	public boolean contains(Point p){
-	    if (p.x > Math.min(n1.p.x + Node.RADIUS, n2.p.x + Node.RADIUS) && 
-		p.x < Math.max(n1.p.x + Node.RADIUS, n2.p.x + Node.RADIUS) &&
-		p.y > Math.min(n1.p.y + Node.RADIUS, n2.p.y + Node.RADIUS) &&
-		p.y < Math.max(n1.p.y + Node.RADIUS, n2.p.y + Node.RADIUS)){
-		if (n2.p.x == n1.p.x){ // Si arête verticale
-		    return (Math.abs(p.x - (n1.p.x + Node.RADIUS)) < Edge.TOLERANCE);
+	    Point[] points = Node.getPointsFromNodes(n1, n2);
+	    Point p1 = points[0];
+	    Point p2 = points[1];
+	    if (p.x > Math.min(p1.x + Node.RADIUS, p2.x + Node.RADIUS) && 
+		p.x < Math.max(p1.x + Node.RADIUS, p2.x + Node.RADIUS) &&
+		p.y > Math.min(p1.y + Node.RADIUS, p2.y + Node.RADIUS) &&
+		p.y < Math.max(p1.y + Node.RADIUS, p2.y + Node.RADIUS)){
+		if (p2.x == p1.x){ // Si arête verticale
+		    return (Math.abs(p.x - (p1.x + Node.RADIUS)) < Edge.TOLERANCE);
 		} else {
-		    double m = (double) (n2.p.y - n1.p.y) / (double) (n2.p.x - n1.p.x);		
-		    if (Math.abs( (p.y - (n1.p.y + Node.RADIUS)) - m * (p.x - (n1.p.x + Node.RADIUS))) < Edge.TOLERANCE){
+		    double m = (double) (p2.y - p1.y) / (double) (p2.x - p1.x);		
+		    if (Math.abs( (p.y - (p1.y + Node.RADIUS)) - m * (p.x - (p1.x + Node.RADIUS))) < Edge.TOLERANCE){
 			return true;
 		    }
 		}
@@ -930,40 +1033,42 @@ public class VisualQuery extends JComponent {
         }
 
 
-       
+      
        /* Dessin de l'Edge */
        public void draw(Graphics g) {
-            Point p1 = n1.getLocation();
-            Point p2 = n2.getLocation();
-	    if (isJoinType()){
+	   Point[] points = Node.getPointsFromNodes(n1, n2);
+	   Point p1 = points[0];
+	   Point p2 = points[1];
+	   if (isJoinType()){
 		if (selected) {
-		    g.setColor(Color.red);
+		    g.setColor(Color.RED);
 		} else {
-		    g.setColor(Color.gray);
+		    g.setColor(Color.GRAY);
 		}
+
 		// Remplit les nodes liés à l'arête
 		g.drawLine(p1.x + Node.RADIUS, p1.y + Node.RADIUS, p2.x + Node.RADIUS, p2.y + Node.RADIUS);
-		g.fillOval(p1.x, p1.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
-		g.fillOval(p2.x, p2.y, 2 * Node.RADIUS, 2 * Node.RADIUS);
+		n1.fill(g);
+		n2.fill(g);
 
 
 		// Dessin du chapeau de la flèche
-		double m = (double) (n2.p.y - n1.p.y) / (double) (n2.p.x - n1.p.x);
-		double sx = Math.signum(n2.p.x - n1.p.x);
-		double x3 = (n2.p.x + Node.RADIUS) - sx * (Edge.ARROW_DEPTH - m * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
-		double y3 = (n2.p.y + Node.RADIUS) - sx * (Edge.ARROW_DEPTH * m + Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
+		double m = (double) (p2.y - p1.y) / (double) (p2.x - p1.x);
+		double sx = Math.signum(p2.x - p1.x);
+		double x3 = (p2.x + Node.RADIUS) - sx * (Edge.ARROW_DEPTH - m * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
+		double y3 = (p2.y + Node.RADIUS) - sx * (Edge.ARROW_DEPTH * m + Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
 		double x4 = x3 - sx * (2 * m * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
 		double y4 = y3 + sx * (2 * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
-		int[] x = {(int) x3, (int) x4, (int) n2.p.x + Node.RADIUS};
-		int[] y = {(int) y3, (int) y4, (int) n2.p.y + Node.RADIUS};
+		int[] x = {(int) x3, (int) x4, (int) p2.x + Node.RADIUS};
+		int[] y = {(int) y3, (int) y4, (int) p2.y + Node.RADIUS};
 		g.fillPolygon(x, y, 3);
 		if (relationType == Edge.INNER){ // Traite le deuxième chapeau pour les IJ
-		    x3 = (n1.p.x + Node.RADIUS) + sx * (Edge.ARROW_DEPTH - m * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
-		    y3 = (n1.p.y + Node.RADIUS) + sx * (Edge.ARROW_DEPTH * m + Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
+		    x3 = (p1.x + Node.RADIUS) + sx * (Edge.ARROW_DEPTH - m * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
+		    y3 = (p1.y + Node.RADIUS) + sx * (Edge.ARROW_DEPTH * m + Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
 		    x4 = x3 + sx * (2 * m * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
 		    y4 = y3 - sx * (2 * Edge.ARROW_HALF_WIDTH) / Math.sqrt(1 + m*m);
-		    int[] x_inner = {(int) x3, (int) x4, (int) n1.p.x + Node.RADIUS};
-		    int[] y_inner = {(int) y3, (int) y4, (int) n1.p.y + Node.RADIUS};
+		    int[] x_inner = {(int) x3, (int) x4, (int) p1.x + Node.RADIUS};
+		    int[] y_inner = {(int) y3, (int) y4, (int) p1.y + Node.RADIUS};
 		    g.fillPolygon(x_inner, y_inner, 3);
 		}
 	    
@@ -971,9 +1076,9 @@ public class VisualQuery extends JComponent {
 
 		// Dessin du type de relation
 		// Le carré de jointure
-		int milieux = Node.RADIUS + (n1.p.x + n2.p.x) / 2;
-		int milieuy = Node.RADIUS + (n1.p.y + n2.p.y) / 2;
-		g.setColor(Color.gray);
+		int milieux = Node.RADIUS + (p1.x + p2.x) / 2;
+		int milieuy = Node.RADIUS + (p1.y + p2.y) / 2;
+		g.setColor(Color.GRAY);
 		g.fillRoundRect(milieux - Edge.JOIN_SIZE,
 				milieuy - Edge.JOIN_SIZE,
 				2 * Edge.JOIN_SIZE,
@@ -981,9 +1086,9 @@ public class VisualQuery extends JComponent {
 				Node.RADIUS,
 				Node.RADIUS);
 		if (selected) {
-		    g.setColor(Color.red);
+		    g.setColor(Color.RED);
 		} else {
-		    g.setColor(Color.black);
+		    g.setColor(Color.BLACK);
 		}
 		g.drawRoundRect(milieux - Edge.JOIN_SIZE,
 				milieuy - Edge.JOIN_SIZE,
@@ -992,7 +1097,7 @@ public class VisualQuery extends JComponent {
 				Node.RADIUS,
 				Node.RADIUS);
 		// L'intérieur du carré
-		g.setColor(Color.white);
+		g.setColor(Color.WHITE);
 		String s = null;
 		switch(relationType){
 		case Edge.LEFT : 
@@ -1009,9 +1114,9 @@ public class VisualQuery extends JComponent {
 			     milieuy + Edge.JOIN_SIZE - (int) ((2 * Edge.JOIN_SIZE - 0.8 * fm.getHeight()) / 2));
 	    } else if (isRelationType()){
 		if (selected) {
-		    g.setColor(Color.cyan);
+		    g.setColor(Color.CYAN);
 		} else {
-		    g.setColor(Color.blue);
+		    g.setColor(Color.BLUE);
 		}
 		// Remplit les nodes liés à l'arête
 		g.drawLine(p1.x + Node.RADIUS, p1.y + Node.RADIUS, p2.x + Node.RADIUS, p2.y + Node.RADIUS);
@@ -1021,9 +1126,9 @@ public class VisualQuery extends JComponent {
 
 		// Dessin du type de relation
 		// Le carré de la relation
-		int tiersx = n1.p.x + Node.RADIUS + (int) ((n2.p.x - n1.p.x) * .4);
-		int tiersy = n1.p.y + Node.RADIUS + (int) ((n2.p.y - n1.p.y) * .4);
-		g.setColor(Color.blue);
+		int tiersx = p1.x + Node.RADIUS + (int) ((p2.x - p1.x) * .4);
+		int tiersy = p1.y + Node.RADIUS + (int) ((p2.y - p1.y) * .4);
+		g.setColor(Color.BLUE);
 		g.fillRoundRect(tiersx - Edge.JOIN_SIZE,
 				tiersy - Edge.JOIN_SIZE,
 				2 * Edge.JOIN_SIZE,
@@ -1031,9 +1136,9 @@ public class VisualQuery extends JComponent {
 				Node.RADIUS,
 				Node.RADIUS);
 		if (selected) {
-		    g.setColor(Color.cyan);
+		    g.setColor(Color.CYAN);
 		} else {
-		    g.setColor(Color.black);
+		    g.setColor(Color.BLACK);
 		}
 		g.drawRoundRect(tiersx - Edge.JOIN_SIZE,
 				tiersy - Edge.JOIN_SIZE,
@@ -1042,7 +1147,7 @@ public class VisualQuery extends JComponent {
 				Node.RADIUS,
 				Node.RADIUS);
 		// L'intérieur du carré
-		g.setColor(Color.white);
+		g.setColor(Color.WHITE);
 		String s = null;
 		switch(relationType){
 		case Edge.EQUAL : 

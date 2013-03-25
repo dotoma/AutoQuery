@@ -65,6 +65,9 @@ BUGS :
 
 FAIT :
 - Visual Query (MAD)
+   - changement de table initiale dans le menu contextuel (MAD)
+   - modification de la flèche pour être la plus courte possible (MAD)
+   - permettre d'attacher une flèche de chaque côté d'un champ (MAD)
    - générer une requête en cliquant sur la table de départ (MAD)
       - prend en compte les conditions supplémentaires (MAD)
    - détecter et interdire les cycles (MAD)
