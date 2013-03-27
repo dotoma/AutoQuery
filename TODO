@@ -23,7 +23,6 @@ BUGS :
 - enregistrer le mot de passe (CGZ)
 - CTRL-Z dans le JEditTextArea (CGZ)
 - double-clic sur une cellule dans une colonne ID_REF pour affichage lié à cette valeur (CGZ)
-- copier une colonne (CGZ)
 - check for updates (CGZ)
 - mettre des guillemets automatiquement après un "where champt_texte = " (CGZ)
 - verrouiller un onglet pour qu'il ne soit pas fermable (MAD)
@@ -64,6 +63,7 @@ BUGS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- copier une colonne (CGZ)
 - Visual Query (MAD)
    - générer une requête en cliquant sur la table de départ (MAD)
       - prend en compte les conditions supplémentaires (MAD)
