@@ -176,7 +176,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 				AutoQuery.this.setVisualQuery(null);
 			    }
 			});
-		    VisualQuery vq = new VisualQuery(f);
+		    VisualQuery vq = new VisualQuery(f, AutoQuery.this);
 		    AutoQuery.this.setVisualQuery(vq);
 		    f.add(new JScrollPane(vq), BorderLayout.CENTER);
 		    f.pack();
@@ -1343,20 +1343,20 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 
     /* Crée un onglet avec la requête fournie 
      Renvoie le composant identifiant l'onglet */
-    private Component makeTabFromQuery(String query){
+    public Component makeTabFromQuery(String query){
 	Component onglet = makeTab();
 	infosOnglets.get(onglet).getJETA().setText(query);
 	return onglet;
     }
 
-    private void makeTabFromQueryAndExecute(String query, String title){
+    public void makeTabFromQueryAndExecute(String query, String title){
 	Component onglet = makeTabFromQuery(query, title);
 	getQueryTabs().setSelectedIndex(getQueryTabs().indexOfTabComponent(onglet)); 
 	executeRequeteOngletActif();
     }
 
 
-    private Component makeTabFromQuery(String query, String title){
+    public Component makeTabFromQuery(String query, String title){
 	Component onglet = makeTab();
 	infosOnglets.get(onglet).getJETA().setText(query);	
 	getQueryTabs().setTitleAt(getQueryTabs().indexOfTabComponent(onglet), title);

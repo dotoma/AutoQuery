@@ -8,6 +8,7 @@ import java.util.ListIterator;
 import java.awt.event.*;
 import javax.swing.event.*;
 
+
 /**
  * Insipiré de GraphPanel de John B. Matthews; distribution per GPL.
  */
@@ -19,6 +20,7 @@ public class VisualQuery extends JComponent {
 
 
     JFrame parentFrame;
+    AutoQuery autoQuery;
 
     private Rectangle mouseRect = new Rectangle();
     private boolean selecting = false;
@@ -61,10 +63,15 @@ public class VisualQuery extends JComponent {
 	}
 	
 	public void actionPerformed(ActionEvent e){
-	    System.out.println(toQuery());
+	    String requete = toQuery();
+	    System.out.println(requete);
+	    if (autoQuery != null){
+		autoQuery.makeTabFromQuery(requete);
+	    }
 	}
     }
     
+    // Permet un démarrage sans lancer l'application AutoQuery
     public VisualQuery(JFrame f) {
 	JMenuBar menu_bar = new JMenuBar();
 	JMenu menu_outils = new JMenu("Outils");
@@ -76,6 +83,23 @@ public class VisualQuery extends JComponent {
         this.addMouseListener(new MouseHandler());
         this.addMouseMotionListener(new MouseMotionHandler());
 	this.parentFrame = f;
+	this.autoQuery = null;
+    }
+
+
+    // Quand exécuté depuis AutoQuery
+    public VisualQuery(JFrame f, AutoQuery autoQuery) {
+	JMenuBar menu_bar = new JMenuBar();
+	JMenu menu_outils = new JMenu("Outils");
+	menu_bar.add(menu_outils);
+	menu_outils.add(new JMenuItem(toQueryAction));
+	f.setJMenuBar(menu_bar);
+
+        this.setOpaque(true);
+        this.addMouseListener(new MouseHandler());
+        this.addMouseMotionListener(new MouseMotionHandler());
+	this.parentFrame = f;
+	this.autoQuery = autoQuery;
     }
 
 

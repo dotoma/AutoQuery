@@ -70,6 +70,7 @@ FAIT :
    - permettre d'attacher une flèche de chaque côté d'un champ (MAD)
    - générer une requête en cliquant sur la table de départ (MAD)
       - prend en compte les conditions supplémentaires (MAD)
+      - envoi de la requête dans nouvel onglet de AutoQuery (MAD)
    - détecter et interdire les cycles (MAD)
    - typer une flèche (LEFT, INNER, RIGHT) (MAD)
    - supprimer une flèche (MAD)
