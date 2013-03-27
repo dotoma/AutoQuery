@@ -1271,10 +1271,31 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 					}		    
 				    });
 			    }
-					    
-			
 			    popupMenu.add(menuExportCSV);
 
+			    /* COPIER LES CELLULES DE LA COLONNE */
+			    JMenuItem menuCopierCellulesColonne = new JMenuItem("Copier la colonne...");
+			    menuCopierCellulesColonne.addActionListener(new ActionListener(){
+				    public void actionPerformed(ActionEvent ae){
+					StringBuffer retour = new StringBuffer();
+					final int[] lignes = table.getSelectedRows();
+					if (lignes.length == 1){ // Si une seuile ligne sélectionnée : c'est le même code que pour "Copier une cellule"
+					    Clipboard clipboard = getToolkit().getSystemClipboard();
+					    String value = (String) table.getValueAt(row, col);
+					    clipboard.setContents(new StringSelection(value),null);
+					} else if (lignes.length > 1){ // Si plusieurs lignes sélectionnées
+					    retour.append((String) table.getValueAt(lignes[0], col));
+					    for (int ligne = 1; ligne < lignes.length ; ligne++ ){
+						retour.append(", " + (String) table.getValueAt(lignes[ligne], col));
+					    }
+					}
+
+					Clipboard clipboard = getToolkit().getSystemClipboard();
+					String value = retour.toString();
+					clipboard.setContents(new StringSelection(value),null);
+				    }
+				});
+			    popupMenu.add(menuCopierCellulesColonne);
 
 			    popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
