@@ -1523,6 +1523,11 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 	status_bar.showStatus(from, message);
     }
 
+    public void showStatus(int onglet, String message){
+	showStatus(getQueryTabs().getTitleAt(onglet),
+		   message);
+    }
+
 
 }
 

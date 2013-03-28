@@ -25,7 +25,6 @@ BUGS :
 - double-clic sur une cellule dans une colonne ID_REF pour affichage lié à cette valeur (CGZ)
 - check for updates (CGZ)
 - mettre des guillemets automatiquement après un "where champt_texte = " (CGZ)
-- verrouiller un onglet pour qu'il ne soit pas fermable (MAD)
 - possibilité de recharger l'arbre des tables (MAD)
 - gérer la version avec un MANIFEST (MAD)
 - différences entre deux résultats de requêtes
@@ -63,6 +62,7 @@ BUGS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- verrouiller un onglet pour qu'il ne soit pas fermable (MAD)
 - copier une colonne (CGZ)
 - Visual Query (MAD)
    - générer une requête en cliquant sur la table de départ (MAD)
