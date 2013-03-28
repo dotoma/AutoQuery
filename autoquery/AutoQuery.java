@@ -369,7 +369,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 	    switch(dotCount){
 	    case 0: 
 		System.out.println("Complétion de schéma");
-		s_to_complete = s_extract;
+		s_to_complete = s_extract.toUpperCase();
 		s_insert = complete(tm_arborescence_BDD, s_to_complete);
 		if (s_insert == null){ // Si ce n'est pas un schéma qu'il faut chercher mais un alias
 		    System.out.println("Pas de schéma trouvé commençant par " + s_to_complete);
@@ -385,8 +385,8 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 		break;
 	    case 1:
 		System.out.println("Complétion de table");
-		s_schema = extract(s_extract, 1);
-		s_to_complete = extract(s_extract, 2);
+		s_schema = extract(s_extract, 1).toUpperCase();
+		s_to_complete = extract(s_extract, 2).toUpperCase();
 		if (s_to_complete != null){
 		    s_insert = (tm_arborescence_BDD.containsKey(s_schema)) ? complete(tm_arborescence_BDD.get(s_schema), s_to_complete) : null;
 		    if (s_insert == null && tm_alias.containsKey(s_schema)){ // Si ce n'est pas une table qu'il faut chercher mais un champ
@@ -398,9 +398,9 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 		break;
 	    case 2:
 		System.out.println("Complétion du champ");
-		s_schema = extract(s_extract, 1);
-		s_table = extract(s_extract, 2);
-		s_to_complete = extract(s_extract, 3);
+		s_schema = extract(s_extract, 1).toUpperCase();
+		s_table = extract(s_extract, 2).toUpperCase();
+		s_to_complete = extract(s_extract, 3).toUpperCase();
 		s_insert = complete((SortedSet) tm_arborescence_BDD.get(s_schema).get(s_table), s_to_complete);
 		System.out.println("Cherche à insérer : " + s_insert + " à partir de " + s_to_complete);
 		break;		
