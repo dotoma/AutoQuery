@@ -1280,9 +1280,7 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 					StringBuffer retour = new StringBuffer();
 					final int[] lignes = table.getSelectedRows();
 					if (lignes.length == 1){ // Si une seuile ligne sélectionnée : c'est le même code que pour "Copier une cellule"
-					    Clipboard clipboard = getToolkit().getSystemClipboard();
-					    String value = (String) table.getValueAt(row, col);
-					    clipboard.setContents(new StringSelection(value),null);
+					    retour.append((String) table.getValueAt(lignes[0], col));
 					} else if (lignes.length > 1){ // Si plusieurs lignes sélectionnées
 					    retour.append((String) table.getValueAt(lignes[0], col));
 					    for (int ligne = 1; ligne < lignes.length ; ligne++ ){
