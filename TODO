@@ -21,7 +21,6 @@ BUGS :
 À FAIRE :
 - enregistrer le mot de passe (CGZ)
 - CTRL-Z dans le JEditTextArea (CGZ)
-- double-clic sur une cellule dans une colonne ID_REF pour affichage lié à cette valeur (CGZ)
 - check for updates (CGZ)
 - mettre des guillemets automatiquement après un "where champt_texte = " (CGZ)
 - possibilité de recharger l'arbre des tables (MAD)
@@ -61,6 +60,7 @@ BUGS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- double-clic sur une cellule dans une colonne ID_* pour affichage lié à cette valeur (CGZ/MAD)
 - copie de colonne uniquement quand plusieurs lignes sélectionnées (MAD)
 - autoriser la saisie en minuscule (oui même pour les noms de table) (CGZ)
 - verrouiller un onglet pour qu'il ne soit pas fermable (MAD)

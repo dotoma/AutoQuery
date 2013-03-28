@@ -1156,8 +1156,21 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 	table.addMouseListener(new MouseAdapter(){
 		public void mouseClicked(MouseEvent e) 
 		{ 
+		    // En cas de double clic sur une cellule
+		    // Si c'est une colonne en "ID_...", on ouvre la table correspondante
+		    // pour la valeur du champ donné par le clic.
 		    if (e.getClickCount() == 2) {
 			System.out.println("Double clic");
+			final int col = table.columnAtPoint(e.getPoint());
+			final int row = table.rowAtPoint(e.getPoint());
+			final String col_name = table.getColumnName(col);
+
+			if (col_name.matches("ID_.*")){
+			    String nom_table = col_name.substring(3);
+			    makeTabFromQueryAndExecute("SELECT \n\t* \nFROM CONF_V3." + nom_table +
+						       "\nWHERE ID = " + (String) table.getValueAt(row, col), 
+						       nom_table);					
+			}
 		    }
 		}
 
