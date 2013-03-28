@@ -19,13 +19,11 @@ BUGS :
 	at java.lang.Thread.run(Thread.java:662)
 
 À FAIRE :
-- autoriser la saisie en minuscule (oui même pour les noms de table) (CGZ)
 - enregistrer le mot de passe (CGZ)
 - CTRL-Z dans le JEditTextArea (CGZ)
 - double-clic sur une cellule dans une colonne ID_REF pour affichage lié à cette valeur (CGZ)
 - check for updates (CGZ)
 - mettre des guillemets automatiquement après un "where champt_texte = " (CGZ)
-- verrouiller un onglet pour qu'il ne soit pas fermable (MAD)
 - possibilité de recharger l'arbre des tables (MAD)
 - gérer la version avec un MANIFEST (MAD)
 - différences entre deux résultats de requêtes
@@ -63,6 +61,8 @@ BUGS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- autoriser la saisie en minuscule (oui même pour les noms de table) (CGZ)
+- verrouiller un onglet pour qu'il ne soit pas fermable (MAD)
 - copier une colonne (CGZ)
 - Visual Query (MAD)
    - changement de table initiale dans le menu contextuel (MAD)
