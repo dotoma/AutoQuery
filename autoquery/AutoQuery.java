@@ -60,6 +60,8 @@ import javax.swing.Timer;
 import java.awt.Point;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import javax.swing.RowFilter;
+import javax.swing.table.TableRowSorter;
 
 /* SQL */
 import java.sql.ResultSet;
@@ -1300,13 +1302,11 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 				menuCopierCellulesColonne.addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent ae){
 					    StringBuffer retour = new StringBuffer();
-					    if (lignes.length > 1){ // Si plusieurs lignes sélectionnées
-						retour.append((String) table.getValueAt(lignes[0], col));
-						for (int ligne = 1; ligne < lignes.length ; ligne++ ){
-						    retour.append(", " + (String) table.getValueAt(lignes[ligne], col));
-						}
+					    retour.append((String) table.getValueAt(lignes[0], col));
+					    for (int ligne = 1; ligne < lignes.length ; ligne++ ){
+						retour.append(", " + (String) table.getValueAt(lignes[ligne], col));
 					    }
-
+					    
 					    Clipboard clipboard = getToolkit().getSystemClipboard();
 					    String value = retour.toString();
 					    clipboard.setContents(new StringSelection(value),null);
@@ -1314,6 +1314,21 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 				    });
 				popupMenu.add(menuCopierCellulesColonne);
 			    }
+
+			    if (lignes.length == 1){
+				/* FILTRER PAR LA CELLULE POINTÉE */
+				JMenuItem menuFiltrer = new JMenuItem("Filtrer suivant cette cellule");
+				menuFiltrer.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent ae){
+					    String a_filtrer = (String) table.getValueAt(row, col);
+					    ((TableRowSorter)table.getRowSorter()).setRowFilter(RowFilter.regexFilter(a_filtrer, col));
+					}
+				    });
+				popupMenu.add(menuFiltrer);
+			    }
+
+
+
 			    popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		    }
@@ -1348,6 +1363,33 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 				});
 			    popupMenu.add(menuTableRef);
 			}
+
+			/* MENU DÉFILTRER */
+			final TableRowSorter rowSorter = ((TableRowSorter)table.getRowSorter());
+			if (rowSorter.getRowFilter() != null){
+			    JMenuItem menuDefiltrer = new JMenuItem("Retirer le filtre");
+			    menuDefiltrer.addActionListener(new ActionListener(){
+				    public void actionPerformed(ActionEvent ae){
+					rowSorter.setRowFilter(null);
+				    }
+				});
+			    popupMenu.add(menuDefiltrer);
+			}
+
+			JMenuItem menuFiltrer = new JMenuItem("Filtrer...");
+			menuFiltrer.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent ae){
+				    String a_filtrer = (String) JOptionPane.showInputDialog(table,
+										     "Filtrer suivant :",
+										     "Filtre sur " + col_name,
+										     JOptionPane.QUESTION_MESSAGE);
+				    if (a_filtrer != null && a_filtrer.trim().length() != 0){
+					rowSorter.setRowFilter(RowFilter.regexFilter(a_filtrer));
+				    }
+				}
+			    });
+			popupMenu.add(menuFiltrer);
+
 			popupMenu.show(e.getComponent(), e.getX(), e.getY());
 		    }
 		}
@@ -1359,8 +1401,8 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 	table.setAutoCreateRowSorter(true);
 	table.getModel().addTableModelListener(this);
 	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-	TableColumnAdjuster tca = new TableColumnAdjuster(table);
-	tca.adjustColumns();
+	//TableColumnAdjuster tca = new TableColumnAdjuster(table);
+	//tca.adjustColumns();
     }
 
     /* Crée un onglet dans le composant gérant les requêtes. 
