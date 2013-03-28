@@ -61,6 +61,7 @@ BUGS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- copie de colonne uniquement quand plusieurs lignes sélectionnées (MAD)
 - autoriser la saisie en minuscule (oui même pour les noms de table) (CGZ)
 - verrouiller un onglet pour qu'il ne soit pas fermable (MAD)
 - copier une colonne (CGZ)

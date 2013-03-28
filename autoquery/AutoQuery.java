@@ -1154,6 +1154,14 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 
 	/* Menu contextuel sur les cellules du JTable*/
 	table.addMouseListener(new MouseAdapter(){
+		public void mouseClicked(MouseEvent e) 
+		{ 
+		    if (e.getClickCount() == 2) {
+			System.out.println("Double clic");
+		    }
+		}
+
+
 		public void mousePressed(MouseEvent e){
 		    maybeShowPopup(e);
 		}
@@ -1171,6 +1179,7 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 			
 			if ((row > -1 && row < table.getRowCount()) && (col > -1 && col < table.getColumnCount())) {
 			    JPopupMenu popupMenu = new JPopupMenu();
+			    final int[] lignes = table.getSelectedRows();
 
 			    /* COPIER LA CELLULE */
 			    JMenuItem menuCopier = new JMenuItem("Copier ce champ");
@@ -1197,7 +1206,6 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 
 			    /* EXPORTER LES LIGNES SÉLECTIONNÉES EN CSV */
 			    final JMenuItem menuExportCSV = new JMenuItem("Exporter en CSV");
-			    final int[] lignes = table.getSelectedRows();
 			    if (lignes == null){
 				menuExportCSV.setEnabled(false);
 			    } else {
@@ -1273,28 +1281,26 @@ System.out.println("Le composant qui a le focus est " + getFocusOwner() + "    "
 			    }
 			    popupMenu.add(menuExportCSV);
 
-			    /* COPIER LES CELLULES DE LA COLONNE */
-			    JMenuItem menuCopierCellulesColonne = new JMenuItem("Copier la colonne...");
-			    menuCopierCellulesColonne.addActionListener(new ActionListener(){
-				    public void actionPerformed(ActionEvent ae){
-					StringBuffer retour = new StringBuffer();
-					final int[] lignes = table.getSelectedRows();
-					if (lignes.length == 1){ // Si une seuile ligne sélectionnée : c'est le même code que pour "Copier une cellule"
-					    retour.append((String) table.getValueAt(lignes[0], col));
-					} else if (lignes.length > 1){ // Si plusieurs lignes sélectionnées
-					    retour.append((String) table.getValueAt(lignes[0], col));
-					    for (int ligne = 1; ligne < lignes.length ; ligne++ ){
-						retour.append(", " + (String) table.getValueAt(lignes[ligne], col));
+			    if (lignes.length > 1){
+				/* COPIER LES CELLULES DE LA COLONNE */
+				JMenuItem menuCopierCellulesColonne = new JMenuItem("Copier la colonne...");
+				menuCopierCellulesColonne.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent ae){
+					    StringBuffer retour = new StringBuffer();
+					    if (lignes.length > 1){ // Si plusieurs lignes sélectionnées
+						retour.append((String) table.getValueAt(lignes[0], col));
+						for (int ligne = 1; ligne < lignes.length ; ligne++ ){
+						    retour.append(", " + (String) table.getValueAt(lignes[ligne], col));
+						}
 					    }
+
+					    Clipboard clipboard = getToolkit().getSystemClipboard();
+					    String value = retour.toString();
+					    clipboard.setContents(new StringSelection(value),null);
 					}
-
-					Clipboard clipboard = getToolkit().getSystemClipboard();
-					String value = retour.toString();
-					clipboard.setContents(new StringSelection(value),null);
-				    }
-				});
-			    popupMenu.add(menuCopierCellulesColonne);
-
+				    });
+				popupMenu.add(menuCopierCellulesColonne);
+			    }
 			    popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		    }
