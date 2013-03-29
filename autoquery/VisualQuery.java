@@ -9,6 +9,7 @@ import java.awt.event.*;
 import javax.swing.event.*;
 
 
+
 /**
  * Insipiré de GraphPanel de John B. Matthews; distribution per GPL.
  */
@@ -212,11 +213,18 @@ public class VisualQuery extends JComponent {
     }
 
 
-    public void addNodeSet(String table_nom, String[] champs){
+    public NodeSet addNodeSet(String table_nom, String[] champs){
+	return addNodeSet(table_nom, champs, true);
+    }
+
+    public NodeSet addNodeSet(String table_nom, String [] champs, boolean repaint){
 	NodeSet ns = new NodeSet(new Point(10, 10), table_nom, champs);
 	ns.setSelected(false);
 	nodeSets.add(ns);
-	repaint();
+	if (repaint) {
+	    repaint();
+	}
+	return ns;
     }
 
     private class MouseMotionHandler extends MouseMotionAdapter {
@@ -352,7 +360,23 @@ public class VisualQuery extends JComponent {
         @Override
         public void mousePressed(MouseEvent e) {
             mousePt = e.getPoint();
-            if (e.isControlDown() && e.isShiftDown()){ // Faire des relations supplémentaires pour rajouter des conditions à la jointure
+	    // En cas de double clic sur un champ du type ID_TABLE,
+	    // On ajoute la table TABLE sur le plan de travail
+            if (e.getClickCount() == 2) {
+		Node n = NodeSet.getNodeFromPoint(nodeSets, mousePt);
+		if (n != null) { // Si on a trouvé un Node
+		    if (n.getName().startsWith("ID_")) {
+			String nom_table = n.getName().substring(3);
+			String [] champs = autoQuery.getDBTreeMap().get("CONF_V3").get(nom_table).toArray(new String[0]);
+			NodeSet ns = addNodeSet(nom_table, champs, false); // On ne repaint pas car on le fait juste après
+			if (ns != null) {
+			    Node n2 = ns.getNodeFromName("ID");
+			    edges.add(new Edge(n, n2));
+			    repaint(); // On ne repaint que si nécessaire
+			}
+		    }
+		}
+	    } else if (e.isControlDown() && e.isShiftDown()){ // Faire des relations supplémentaires pour rajouter des conditions à la jointure
 		System.out.println("Condition supplémentaire");
 		addingRelation = true;
 		pendingConnectionStartPoint = pendingConnectionEndPoint =  e.getPoint();		
@@ -483,6 +507,15 @@ public class VisualQuery extends JComponent {
 	private static NodeSet first = null;
 	public static final int HEADER_HEIGHT = 25;
 	public static final int HORIZONTAL_PADDING = 5;
+
+	public Node getNodeFromName(String name){
+	    for (Node n : nodes) {
+		if (n.getName().equals(name)) {
+		    return n;
+		}
+	    }
+	    return null;
+	}
 
 	public String getName(){
 	    return name;

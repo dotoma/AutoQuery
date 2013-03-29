@@ -60,6 +60,8 @@ BUGS :
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- VQ
+   - Double clic sur un champ ID_TABLE pour joindre à TABLE le champ
 - double-clic sur une cellule dans une colonne ID_* pour affichage lié à cette valeur (CGZ/MAD)
 - copie de colonne uniquement quand plusieurs lignes sélectionnées (MAD)
 - autoriser la saisie en minuscule (oui même pour les noms de table) (CGZ)
