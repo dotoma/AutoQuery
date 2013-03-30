@@ -53,15 +53,18 @@ BUGS :
 - historique (MAD)
   - effacer l'historique (GBA)
   - sauvegarder historique et séparer par jour (MAD)
-- recherche de champs/tables dans l'arbre à droite (MAD)
 - icône pour l'application  (MAD)
 - refresh automatique sur les requêtes des onglets (toutes les x minutes) (MAD)
 - une fois les résultats dans la JTable
    - possibilité de filtrer sur la colonne qu'on veut (MAD)
 
 FAIT :
+- recherche de champs/tables dans l'arbre à droite (MAD)
+*** Démo jusqu'ici *******
 - VQ
-   - Double clic sur un champ ID_TABLE pour joindre à TABLE le champ
+   - Double clic sur un champ ID_TABLE pour joindre à TABLE le champ (MAD)
+- filtrer une colonne selon une cellule (MAD)
+- filtrer une colonne selon valeur entrée par utilisateur (MAD)
 - double-clic sur une cellule dans une colonne ID_* pour affichage lié à cette valeur (CGZ/MAD)
 - copie de colonne uniquement quand plusieurs lignes sélectionnées (MAD)
 - autoriser la saisie en minuscule (oui même pour les noms de table) (CGZ)

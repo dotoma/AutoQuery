@@ -90,7 +90,7 @@ import autoquery.jedittextarea.*;
 
 /* Classe pour sauver en CSV */
 import au.com.bytecode.opencsv.CSVWriter;
-
+import filtertree.FilteredTree;
 
 
 /**
@@ -142,6 +142,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
     private TreeMap <String, TreeMap<String, TreeSet<String>> >  tm_arborescence_BDD;
     private DefaultMutableTreeNode dmtn_root;
     private TreeMap<String, TreeSet> tm_alias;
+    private FilteredTree filteredTree;
 
 
     /* Composants */
@@ -736,6 +737,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 			}
 		};
 		jt_arborescence_BDD.addMouseListener(ml);
+	        filteredTree = new FilteredTree(jt_arborescence_BDD);
 	} 
 
 
@@ -743,7 +745,7 @@ public class AutoQuery extends JFrame implements ActionListener, TableModelListe
 
 
 	/* Crée la fenêtre avec ses composants */
-	JScrollPane jsp_treeView = new JScrollPane(jt_arborescence_BDD); /* Crée la hiérarchie de la BDD */
+	JScrollPane jsp_treeView = new JScrollPane(filteredTree); /* Crée la hiérarchie de la BDD */
 
 	
 	/* Crée les onglets BDD, Signets, Historique */
